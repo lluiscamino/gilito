@@ -1,16 +1,13 @@
-import { AssetCategory } from '../../lib/assets/asset_category.ts';
+import {
+  AssetCategoryLevel,
+  getSnapshotsPerCategoryLevel,
+} from '../../lib/assets/asset_category.ts';
 import type { BalanceSheet } from '../../lib/assets/balance_sheet.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
-import type { CategoryAllocation } from './category_allocation.ts';
+import { AllocationLevel } from './allocations.ts';
+import type { Allocations, AllocationEntry } from './allocations.ts';
 import type { WealthSnapshot } from './wealth_snapshot.ts';
 import type { WealthDelta } from './wealth_delta.ts';
-
-const CATEGORY_META: Record<string, { label: string; emoji: string; color: string }> = {
-  [AssetCategory.CASH]: { label: 'Cash', emoji: '💰', color: '#007AFF' },
-  [AssetCategory.STOCKS]: { label: 'Stocks', emoji: '📈', color: '#5E5CE6' },
-  [AssetCategory.PROPERTY]: { label: 'Property', emoji: '🏠', color: '#34C759' },
-  [AssetCategory.CRYPTO]: { label: 'Crypto', emoji: '🪙', color: '#F7931A' },
-};
 
 function sheetTotalCents(sheet: BalanceSheet): number {
   return sheet.snapshots.reduce((sum, s) => sum + s.value.amount, 0);
@@ -41,16 +38,39 @@ export class DashboardController {
     return { cents, percentage: (cents / prev) * 100 };
   }
 
-  getAllocations(): CategoryAllocation[] {
-    const total = sheetTotalCents(this.latest);
-    const totals = new Map<string, number>();
-    for (const { asset, value } of this.latest.snapshots) {
-      totals.set(asset.category, (totals.get(asset.category) ?? 0) + value.amount);
-    }
-    return [...totals.entries()].map(([cat, cents]) => {
-      const meta = CATEGORY_META[cat] ?? { label: cat, emoji: '', color: '#888' };
-      return { ...meta, cents, percentage: (cents / total) * 100 };
-    });
+  getAllocations(): Allocations {
+    const totalCents = sheetTotalCents(this.latest);
+
+    const toEntries = (level: AssetCategoryLevel): readonly AllocationEntry[] =>
+      getSnapshotsPerCategoryLevel(level, this.latest)
+        .map(({ category, snapshots }) => {
+          const cents = snapshots.reduce((sum, s) => sum + s.value.amount, 0);
+          return {
+            label: category.name,
+            emoji: category.emoji,
+            color: category.color,
+            cents,
+            percentage: (cents / totalCents) * 100,
+          };
+        })
+        .sort((a, b) => b.cents - a.cents);
+
+    const assetEntries: readonly AllocationEntry[] = [...this.latest.snapshots]
+      .sort((a, b) => b.value.amount - a.value.amount)
+      .map(({ asset, value }) => ({
+        label: asset.name,
+        emoji: asset.category.emoji,
+        color: asset.category.color,
+        cents: value.amount,
+        percentage: (value.amount / totalCents) * 100,
+      }));
+
+    return {
+      [AllocationLevel.Overview.id]: toEntries(AssetCategoryLevel.Overview),
+      [AllocationLevel.Category.id]: toEntries(AssetCategoryLevel.Category),
+      [AllocationLevel.Detail.id]: toEntries(AssetCategoryLevel.Detail),
+      [AllocationLevel.Assets.id]: assetEntries,
+    };
   }
 
   getWealthHistory(): WealthSnapshot[] {

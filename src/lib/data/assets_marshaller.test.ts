@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { AssetsMarshaller } from './assets_marshaller.ts';
-import { AssetCategory } from '../assets/asset_category.ts';
+import { findCategoryById } from '../assets/asset_category.ts';
 import type { Asset } from '../assets/asset.ts';
 
 describe('AssetsMarshaller', () => {
@@ -19,38 +19,52 @@ describe('AssetsMarshaller', () => {
     it('parses a single asset row', () => {
       const rows = [
         [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }],
-        [{ value: 'a1' }, { value: 'Cash' }, { value: 'CASH' }],
+        [{ value: 'a1' }, { value: 'Savings' }, { value: 'defensive.cash.savings' }],
       ];
-      expect(marshaller.parse(rows)).toEqual([
-        { id: 'a1', name: 'Cash', category: AssetCategory.CASH },
-      ]);
+      const result = marshaller.parse(rows);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('a1');
+      expect(result[0].name).toBe('Savings');
+      expect(result[0].category.id).toBe('defensive.cash.savings');
     });
 
     it('parses multiple asset rows preserving order', () => {
       const rows = [
         [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }],
-        [{ value: 'a1' }, { value: 'Cash' }, { value: 'CASH' }],
-        [{ value: 'a2' }, { value: 'ETF' }, { value: 'STOCKS' }],
-        [{ value: 'a3' }, { value: 'Flat' }, { value: 'PROPERTY' }],
-        [{ value: 'a4' }, { value: 'BTC' }, { value: 'CRYPTO' }],
+        [{ value: 'a1' }, { value: 'Current' }, { value: 'defensive.cash.current' }],
+        [{ value: 'a2' }, { value: 'ETF' }, { value: 'growth.equities.general' }],
+        [{ value: 'a3' }, { value: 'Flat' }, { value: 'growth.property' }],
+        [{ value: 'a4' }, { value: 'BTC' }, { value: 'growth.crypto' }],
       ];
-      expect(marshaller.parse(rows)).toEqual([
-        { id: 'a1', name: 'Cash', category: AssetCategory.CASH },
-        { id: 'a2', name: 'ETF', category: AssetCategory.STOCKS },
-        { id: 'a3', name: 'Flat', category: AssetCategory.PROPERTY },
-        { id: 'a4', name: 'BTC', category: AssetCategory.CRYPTO },
+      const result = marshaller.parse(rows);
+      expect(result.map((a) => a.category.id)).toEqual([
+        'defensive.cash.current',
+        'growth.equities.general',
+        'growth.property',
+        'growth.crypto',
       ]);
     });
 
     it('skips rows with empty id', () => {
       const rows = [
         [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }],
-        [{ value: '' }, { value: 'Unnamed' }, { value: 'CASH' }],
-        [{ value: 'a1' }, { value: 'Cash' }, { value: 'CASH' }],
+        [{ value: '' }, { value: 'Unnamed' }, { value: 'defensive.cash.savings' }],
+        [{ value: 'a1' }, { value: 'Savings' }, { value: 'defensive.cash.savings' }],
       ];
       const result = marshaller.parse(rows);
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('a1');
+    });
+
+    it('skips rows with an unknown category id', () => {
+      const rows = [
+        [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }],
+        [{ value: 'a1' }, { value: 'Savings' }, { value: 'UNKNOWN' }],
+        [{ value: 'a2' }, { value: 'Crypto' }, { value: 'growth.crypto' }],
+      ];
+      const result = marshaller.parse(rows);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('a2');
     });
   });
 
@@ -61,24 +75,24 @@ describe('AssetsMarshaller', () => {
       expect(rows[0].map((c) => c.value)).toEqual(['ID', 'Name', 'Category']);
     });
 
-    it('returns header plus one row per asset', () => {
+    it('serialises category as its id string', () => {
       const assets: Asset[] = [
-        { id: 'a1', name: 'Cash', category: AssetCategory.CASH },
-        { id: 'a2', name: 'ETF', category: AssetCategory.STOCKS },
+        { id: 'a1', name: 'Savings', category: findCategoryById('defensive.cash.savings') },
+        { id: 'a2', name: 'ETF', category: findCategoryById('growth.equities.general') },
       ];
       const rows = marshaller.toSheetRows(assets);
       expect(rows).toHaveLength(3);
-      expect(rows[1].map((c) => c.value)).toEqual(['a1', 'Cash', 'CASH']);
-      expect(rows[2].map((c) => c.value)).toEqual(['a2', 'ETF', 'STOCKS']);
+      expect(rows[1].map((c) => c.value)).toEqual(['a1', 'Savings', 'defensive.cash.savings']);
+      expect(rows[2].map((c) => c.value)).toEqual(['a2', 'ETF', 'growth.equities.general']);
     });
   });
 
   it('round-trips assets through toSheetRows → parse', () => {
     const assets: Asset[] = [
-      { id: 'a1', name: 'Cash Account', category: AssetCategory.CASH },
-      { id: 'a2', name: 'ETF Portfolio', category: AssetCategory.STOCKS },
-      { id: 'a3', name: 'Apartment', category: AssetCategory.PROPERTY },
-      { id: 'a4', name: 'Bitcoin', category: AssetCategory.CRYPTO },
+      { id: 'a1', name: 'Current Account', category: findCategoryById('defensive.cash.current') },
+      { id: 'a2', name: 'ETF Portfolio', category: findCategoryById('growth.equities.general') },
+      { id: 'a3', name: 'Apartment', category: findCategoryById('growth.property') },
+      { id: 'a4', name: 'Bitcoin', category: findCategoryById('growth.crypto') },
     ];
     expect(marshaller.parse(marshaller.toSheetRows(assets))).toEqual(assets);
   });

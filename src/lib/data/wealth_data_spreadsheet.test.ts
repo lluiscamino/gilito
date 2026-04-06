@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WealthDataSpreadsheet } from './wealth_data_spreadsheet.ts';
 import { Spreadsheet } from '../google/sheets/spreadsheet.ts';
 import { Money, Currencies } from 'ts-money';
-import { AssetCategory } from '../assets/asset_category.ts';
+import { findCategoryById } from '../assets/asset_category.ts';
 import type { Asset } from '../assets/asset.ts';
 import type { SheetRow } from '../google/sheets/sheet_row.ts';
 
@@ -37,7 +37,11 @@ function makeMockSpreadsheet() {
   return { spreadsheet, dataSheet, assetsSheet };
 }
 
-const cashAsset: Asset = { id: 'cash', name: 'Cash', category: AssetCategory.CASH };
+const cashAsset: Asset = {
+  id: 'cash',
+  name: 'Cash',
+  category: findCategoryById('defensive.cash.savings'),
+};
 
 const toSerial = (date: Date) => date.getTime() / 86400000 + 25569;
 const JAN_2024 = new Date(Date.UTC(2024, 0, 1));
@@ -85,7 +89,7 @@ describe('WealthDataSpreadsheet', () => {
     it('parses assets and balance sheets from sheet data', async () => {
       const assetRows: SheetRow[] = [
         [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }],
-        [{ value: 'cash' }, { value: 'Cash' }, { value: 'CASH' }],
+        [{ value: 'cash' }, { value: 'Cash' }, { value: 'defensive.cash.savings' }],
       ];
       const dataRows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }],
@@ -97,11 +101,8 @@ describe('WealthDataSpreadsheet', () => {
       const wds = await WealthDataSpreadsheet.getOrCreate('token');
       const sheets = wds.getBalanceSheets();
       expect(sheets).toHaveLength(1);
-      expect(sheets[0].snapshots[0].asset).toEqual({
-        id: 'cash',
-        name: 'Cash',
-        category: AssetCategory.CASH,
-      });
+      expect(sheets[0].snapshots[0].asset.id).toBe('cash');
+      expect(sheets[0].snapshots[0].asset.category.id).toBe('defensive.cash.savings');
       expect(sheets[0].snapshots[0].value.amount).toBe(100000);
     });
 

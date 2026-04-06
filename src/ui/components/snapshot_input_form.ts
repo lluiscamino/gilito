@@ -1,14 +1,12 @@
-import { AssetCategory } from '../../lib/assets/asset_category.ts';
+import {
+  findCategoryById,
+  isValidCategoryId,
+  leafCategories,
+} from '../../lib/assets/asset_category.ts';
+import type { AssetCategoryId } from '../../lib/assets/asset_category_id.ts';
 import type { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import type { NewAssetValue } from '../controllers/new_asset_value.ts';
 import { formatEur } from '../formatting.ts';
-
-const CATEGORY_LABELS: Record<string, string> = {
-  [AssetCategory.CASH]: 'Cash',
-  [AssetCategory.STOCKS]: 'Stocks',
-  [AssetCategory.PROPERTY]: 'Property',
-  [AssetCategory.CRYPTO]: 'Crypto',
-};
 
 function currentMonthValue(): string {
   const now = new Date();
@@ -138,10 +136,15 @@ export class SnapshotInputForm {
       }
 
       const newAssets: NewAssetValue[] = newAssetEls
-        .filter((r) => r.nameEl.isConnected && r.nameEl.value.trim() !== '')
+        .filter(
+          (r) =>
+            r.nameEl.isConnected &&
+            r.nameEl.value.trim() !== '' &&
+            isValidCategoryId(r.categoryEl.value),
+        )
         .map((r) => ({
           name: r.nameEl.value.trim(),
-          category: r.categoryEl.value as (typeof AssetCategory)[keyof typeof AssetCategory],
+          category: findCategoryById(r.categoryEl.value as AssetCategoryId),
           euros: parseFloat(r.valueEl.value) || 0,
         }));
 
@@ -171,10 +174,10 @@ export class SnapshotInputForm {
     const categoryEl = document.createElement('select');
     categoryEl.className = 'asset-category-select';
     categoryEl.setAttribute('aria-label', 'Asset category');
-    for (const [key, value] of Object.entries(AssetCategory)) {
+    for (const category of leafCategories()) {
       const option = document.createElement('option');
-      option.value = value;
-      option.textContent = CATEGORY_LABELS[value] ?? key;
+      option.value = category.id;
+      option.textContent = category.name;
       categoryEl.append(option);
     }
 

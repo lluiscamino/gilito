@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GoogleSheetsWealthRepository } from './google_sheets_wealth_repository.ts';
 import { WealthDataSpreadsheet } from './wealth_data_spreadsheet.ts';
 import { Money, Currencies } from 'ts-money';
-import { AssetCategory } from '../assets/asset_category.ts';
+import { findCategoryById } from '../assets/asset_category.ts';
 
 vi.mock('./wealth_data_spreadsheet.ts', () => ({
   WealthDataSpreadsheet: {
@@ -18,7 +18,11 @@ function makeMockDataSpreadsheet() {
   };
 }
 
-const cashAsset = { id: 'cash', name: 'Cash', category: AssetCategory.CASH };
+const cashAsset = {
+  id: 'cash',
+  name: 'Cash',
+  category: findCategoryById('defensive.cash.savings'),
+};
 
 function makeBalanceSheet(year: number) {
   return {

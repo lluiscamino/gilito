@@ -38,7 +38,7 @@ export class SnapshotInputController {
 
     for (const newAsset of newAssets) {
       const asset: Asset = {
-        id: `${newAsset.name}-${newAsset.category}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: `${newAsset.name}-${newAsset.category.id}-${Date.now()}`,
         name: newAsset.name,
         category: newAsset.category,
       };
