@@ -1,4 +1,10 @@
 import { Money, Currencies } from 'ts-money';
+import {
+  findCategoryById,
+  isValidCategoryId,
+  leafCategories,
+} from '../../lib/assets/asset_category.ts';
+import type { AssetCategory } from '../../lib/assets/asset_category.ts';
 import type { Asset } from '../../lib/assets/asset.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { EntryInput } from './entry_input.ts';
@@ -21,6 +27,10 @@ export class SnapshotInputController {
     }));
   }
 
+  getCategories(): AssetCategory[] {
+    return leafCategories();
+  }
+
   saveSnapshot(
     date: Date,
     values: ReadonlyMap<string, number>,
@@ -37,10 +47,12 @@ export class SnapshotInputController {
       : [];
 
     for (const newAsset of newAssets) {
+      if (!isValidCategoryId(newAsset.categoryId)) continue;
+      const category = findCategoryById(newAsset.categoryId);
       const asset: Asset = {
-        id: `${newAsset.name}-${newAsset.category.id}-${Date.now()}`,
+        id: `${newAsset.name}-${category.id}-${Date.now()}`,
         name: newAsset.name,
-        category: newAsset.category,
+        category,
       };
       snapshots.push({ asset, value: new Money(Math.round(newAsset.euros * 100), Currencies.EUR) });
     }

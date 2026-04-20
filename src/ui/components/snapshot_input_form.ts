@@ -1,9 +1,4 @@
-import {
-  findCategoryById,
-  isValidCategoryId,
-  leafCategories,
-} from '../../lib/assets/asset_category.ts';
-import type { AssetCategoryId } from '../../lib/assets/asset_category_id.ts';
+import type { AssetCategory } from '../../lib/assets/asset_category.ts';
 import type { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import type { NewAssetValue } from '../controllers/new_asset_value.ts';
 import { EntryInputRow } from './entry_input_row.ts';
@@ -37,7 +32,7 @@ export class SnapshotInputForm {
     addAssetBtn.className = 'btn-add-asset';
     addAssetBtn.textContent = '+ Add Asset';
     addAssetBtn.addEventListener('click', () => {
-      const categoryEl = makeCategorySelect();
+      const categoryEl = makeCategorySelect(this.controller.getCategories());
       const row = new NewEntryRow(newList, {
         namePlaceholder: 'Asset name',
         extraFields: [categoryEl],
@@ -61,15 +56,10 @@ export class SnapshotInputForm {
         const values = new Map(entryRows.map((r) => [r.id, r.getEuros()]));
 
         const newAssets: NewAssetValue[] = newEntryRows
-          .filter(
-            ({ row, categoryEl }) =>
-              row.nameEl.isConnected &&
-              row.nameEl.value.trim() !== '' &&
-              isValidCategoryId(categoryEl.value),
-          )
+          .filter(({ row }) => row.nameEl.isConnected && row.nameEl.value.trim() !== '')
           .map(({ row, categoryEl }) => ({
             name: row.nameEl.value.trim(),
-            category: findCategoryById(categoryEl.value as AssetCategoryId),
+            categoryId: categoryEl.value,
             euros: parseFloat(row.valueEl.value) || 0,
           }));
 
@@ -80,11 +70,11 @@ export class SnapshotInputForm {
   }
 }
 
-function makeCategorySelect(): HTMLSelectElement {
+function makeCategorySelect(categories: AssetCategory[]): HTMLSelectElement {
   const select = document.createElement('select');
   select.className = 'asset-category-select';
   select.setAttribute('aria-label', 'Asset category');
-  for (const category of leafCategories()) {
+  for (const category of categories) {
     const option = document.createElement('option');
     option.value = category.id;
     option.textContent = category.name;
