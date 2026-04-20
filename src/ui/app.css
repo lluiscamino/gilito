@@ -317,6 +317,17 @@ main {
   color: var(--text);
 }
 
+/* ── Dashboard actions ───────────────────────────── */
+
+.dashboard-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.dashboard-actions .new-snapshot-card {
+  flex: 1;
+}
+
 /* ── New snapshot card ───────────────────────────── */
 
 .new-snapshot-card {

@@ -1,21 +1,35 @@
+import type { Money } from 'ts-money';
 import { formatEur } from '../formatting.ts';
-import type { SpreadsheetController } from '../controllers/spreadsheet_controller.ts';
 import { MoneyDeltaBadge } from './delta_badge.ts';
 
-export class SnapshotsTable {
-  private readonly controller: SpreadsheetController;
+export interface TableColumn {
+  readonly id: string;
+  readonly name: string;
+}
 
-  constructor(controller: SpreadsheetController) {
-    this.controller = controller;
+export interface TableRow {
+  readonly date: Date;
+  readonly values: Map<string, Money>;
+}
+
+export class DataTable {
+  private readonly columns: readonly TableColumn[];
+  private readonly rows: readonly TableRow[];
+  private readonly onUpdateCell: (id: string, dateIndex: number, euros: number) => void;
+
+  constructor(
+    columns: readonly TableColumn[],
+    rows: readonly TableRow[],
+    onUpdateCell: (id: string, dateIndex: number, euros: number) => void,
+  ) {
+    this.columns = columns;
+    this.rows = rows;
+    this.onUpdateCell = onUpdateCell;
   }
 
   render(): HTMLElement {
     const main = document.createElement('main');
     main.className = 'snapshots-layout';
-
-    const dates = this.controller.getDates();
-    const rows = this.controller.getRows();
-    const totals = this.controller.getTotals();
 
     const wrap = document.createElement('div');
     wrap.className = 'table-wrap';
@@ -26,20 +40,25 @@ export class SnapshotsTable {
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
     headRow.innerHTML = `<th class="col-date">Date</th><th>Total</th><th>Change</th>`;
-    for (const row of rows) {
+    for (const col of this.columns) {
       const th = document.createElement('th');
-      th.textContent = row.assetName;
+      th.textContent = col.name;
       headRow.append(th);
     }
     thead.append(headRow);
 
+    const totals = this.rows.map((row) =>
+      [...row.values.values()].reduce((sum, m) => sum + m.amount, 0),
+    );
+
     const tbody = document.createElement('tbody');
-    for (let i = dates.length - 1; i >= 0; i--) {
+    for (let i = this.rows.length - 1; i >= 0; i--) {
+      const row = this.rows[i];
       const tr = document.createElement('tr');
 
       const dateTd = document.createElement('td');
       dateTd.className = 'col-date';
-      dateTd.textContent = dates[i].toLocaleDateString('en', { month: 'short', year: 'numeric' });
+      dateTd.textContent = row.date.toLocaleDateString('en', { month: 'short', year: 'numeric' });
       tr.append(dateTd);
 
       const totalTd = document.createElement('td');
@@ -52,9 +71,10 @@ export class SnapshotsTable {
       if (i > 0) deltaTd.append(makeDeltaEl(totals[i], totals[i - 1]));
       tr.append(deltaTd);
 
-      for (const row of rows) {
+      for (const col of this.columns) {
+        const cents = row.values.get(col.id)?.amount ?? 0;
         const td = document.createElement('td');
-        td.append(this.makeInput(row.assetId, i, row.values[i]));
+        td.append(this.makeInput(col.id, i, cents));
         tr.append(td);
       }
 
@@ -67,7 +87,7 @@ export class SnapshotsTable {
     return main;
   }
 
-  private makeInput(assetId: string, dateIndex: number, cents: number): HTMLInputElement {
+  private makeInput(id: string, dateIndex: number, cents: number): HTMLInputElement {
     let current = cents / 100;
 
     const input = document.createElement('input');
@@ -88,7 +108,7 @@ export class SnapshotsTable {
       }
       if (parsed !== current) {
         current = parsed;
-        this.controller.updateCell(assetId, dateIndex, parsed);
+        this.onUpdateCell(id, dateIndex, parsed);
       }
     });
 
@@ -105,6 +125,5 @@ export class SnapshotsTable {
 }
 
 function makeDeltaEl(cents: number, prevCents: number): HTMLElement {
-  const diff = cents - prevCents;
-  return new MoneyDeltaBadge(diff).render();
+  return new MoneyDeltaBadge(cents - prevCents).render();
 }

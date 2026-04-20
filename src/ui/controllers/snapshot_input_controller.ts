@@ -1,7 +1,7 @@
 import { Money, Currencies } from 'ts-money';
 import type { Asset } from '../../lib/assets/asset.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
-import type { AssetInput } from './asset_input.ts';
+import type { EntryInput } from './entry_input.ts';
 import type { NewAssetValue } from './new_asset_value.ts';
 
 export class SnapshotInputController {
@@ -11,7 +11,7 @@ export class SnapshotInputController {
     this.repo = repo;
   }
 
-  getAssetInputs(): AssetInput[] {
+  getEntryInputs(): EntryInput[] {
     const latest = this.repo.getLatestBalanceSheet();
     if (!latest) return [];
     return latest.snapshots.map((s) => ({

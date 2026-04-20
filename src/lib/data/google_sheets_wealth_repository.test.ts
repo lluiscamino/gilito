@@ -15,6 +15,9 @@ function makeMockDataSpreadsheet() {
     getBalanceSheets: vi.fn().mockReturnValue([]),
     addBalanceSheet: vi.fn(),
     updateBalanceSheet: vi.fn(),
+    getIncomeSheets: vi.fn().mockReturnValue([]),
+    addIncomeSheet: vi.fn(),
+    updateIncomeSheet: vi.fn(),
   };
 }
 
@@ -23,11 +26,19 @@ const cashAsset = {
   name: 'Cash',
   category: findCategoryById('defensive.cash.savings'),
 };
+const salarySource = { id: 'salary', name: 'Salary' };
 
 function makeBalanceSheet(year: number) {
   return {
     date: new Date(Date.UTC(year, 0, 1)),
     snapshots: [{ asset: cashAsset, value: new Money(100000, Currencies.EUR) }],
+  };
+}
+
+function makeIncomeSheet(year: number) {
+  return {
+    date: new Date(Date.UTC(year, 0, 1)),
+    entries: [{ source: salarySource, amount: new Money(500000, Currencies.EUR) }],
   };
 }
 
@@ -91,6 +102,52 @@ describe('GoogleSheetsWealthRepository', () => {
       const bs = makeBalanceSheet(2024);
       repo.updateBalanceSheet(bs);
       expect(mockDataSpreadsheet.updateBalanceSheet).toHaveBeenCalledWith(bs);
+    });
+  });
+
+  describe('getAllIncomeSheets', () => {
+    it('returns all income sheets from the spreadsheet', async () => {
+      const sheets = [makeIncomeSheet(2023), makeIncomeSheet(2024)];
+      mockDataSpreadsheet.getIncomeSheets.mockReturnValue(sheets);
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      expect(repo.getAllIncomeSheets()).toBe(sheets);
+    });
+
+    it('returns empty array when there are no income sheets', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      expect(repo.getAllIncomeSheets()).toEqual([]);
+    });
+  });
+
+  describe('getLatestIncomeSheet', () => {
+    it('returns the last income sheet', async () => {
+      const sheets = [makeIncomeSheet(2022), makeIncomeSheet(2023), makeIncomeSheet(2024)];
+      mockDataSpreadsheet.getIncomeSheets.mockReturnValue(sheets);
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      expect(repo.getLatestIncomeSheet()).toBe(sheets[2]);
+    });
+
+    it('returns undefined when there are no income sheets', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      expect(repo.getLatestIncomeSheet()).toBeUndefined();
+    });
+  });
+
+  describe('addIncomeSheet', () => {
+    it('delegates to the spreadsheet', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      const sheet = makeIncomeSheet(2024);
+      repo.addIncomeSheet(sheet);
+      expect(mockDataSpreadsheet.addIncomeSheet).toHaveBeenCalledWith(sheet);
+    });
+  });
+
+  describe('updateIncomeSheet', () => {
+    it('delegates to the spreadsheet', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      const sheet = makeIncomeSheet(2024);
+      repo.updateIncomeSheet(sheet);
+      expect(mockDataSpreadsheet.updateIncomeSheet).toHaveBeenCalledWith(sheet);
     });
   });
 });

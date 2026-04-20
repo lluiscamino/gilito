@@ -1,13 +1,16 @@
 import Navigo from 'navigo';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import { DashboardController } from '../controllers/dashboard_controller.ts';
+import { IncomeInputController } from '../controllers/income_input_controller.ts';
+import { IncomeSpreadsheetController } from '../controllers/income_spreadsheet_controller.ts';
 import { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import { SpreadsheetController } from '../controllers/spreadsheet_controller.ts';
 import { BottomNav } from './bottom_nav.ts';
 import { Header } from './header.ts';
+import { DataTable } from './data_table.ts';
+import { IncomeInputForm } from './income_input_form.ts';
 import { MainDashboard } from './main_dashboard.ts';
 import { SnapshotInputForm } from './snapshot_input_form.ts';
-import { SnapshotsTable } from './snapshots_table.ts';
 
 export class App {
   private readonly repo: WealthRepository;
@@ -26,6 +29,7 @@ export class App {
     const nav = new BottomNav(
       () => router.navigate('/'),
       () => router.navigate('/snapshots'),
+      () => router.navigate('/income'),
     );
     const navEl = nav.render();
 
@@ -39,15 +43,22 @@ export class App {
           return;
         }
         content.append(
-          new MainDashboard(new DashboardController(repo), () =>
-            router.navigate('/input'),
+          new MainDashboard(
+            new DashboardController(repo),
+            () => router.navigate('/input'),
+            () => router.navigate('/income/input'),
           ).render(),
         );
         nav.setActive('dashboard');
       })
       .on('/snapshots', () => {
         content.innerHTML = '';
-        content.append(new SnapshotsTable(new SpreadsheetController(repo)).render());
+        const ctrl = new SpreadsheetController(repo);
+        content.append(
+          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, euros) =>
+            ctrl.updateCell(id, i, euros),
+          ).render(),
+        );
         nav.setActive('snapshots');
       })
       .on('/input', () => {
@@ -57,6 +68,26 @@ export class App {
             new SnapshotInputController(repo),
             () => router.navigate('/'),
             () => router.navigate('/'),
+          ).render(),
+        );
+      })
+      .on('/income', () => {
+        content.innerHTML = '';
+        const ctrl = new IncomeSpreadsheetController(repo);
+        content.append(
+          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, euros) =>
+            ctrl.updateCell(id, i, euros),
+          ).render(),
+        );
+        nav.setActive('income');
+      })
+      .on('/income/input', () => {
+        content.innerHTML = '';
+        content.append(
+          new IncomeInputForm(
+            new IncomeInputController(repo),
+            () => router.navigate('/income'),
+            () => router.navigate('/income'),
           ).render(),
         );
       })
