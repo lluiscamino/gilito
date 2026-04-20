@@ -26,7 +26,7 @@ export class SignInScreen {
     btn.type = 'button';
     btn.className = 'sign-in-screen__btn';
     const logo = document.createElement('img');
-    logo.src = '/google.svg';
+    logo.src = './google.svg';
     logo.alt = '';
     logo.className = 'sign-in-screen__google-logo';
     btn.append(logo, 'Sign in with Google');
