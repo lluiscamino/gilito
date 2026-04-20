@@ -4,7 +4,7 @@ import type { CurrencyConverter } from './currency_converter.ts';
 
 export const DISPLAY_CURRENCY = Currency.EUR;
 
-export const ZERO_DISPLAY = new Money(0, DISPLAY_CURRENCY);
+const ZERO_DISPLAY = new Money(0, DISPLAY_CURRENCY);
 
 export function toDecimal(money: Money): number {
   return money.amount / 100;

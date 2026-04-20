@@ -1,4 +1,4 @@
-export type ActiveView = 'dashboard' | 'snapshots' | 'income';
+type ActiveView = 'dashboard' | 'snapshots' | 'income';
 
 export class BottomNav {
   private readonly onDashboard: () => void;

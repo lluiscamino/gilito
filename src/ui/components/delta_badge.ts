@@ -1,7 +1,7 @@
 import { Money } from 'ts-money';
 import { formatMoney } from '../formatting.ts';
 
-export class DeltaBadge {
+class DeltaBadge {
   private readonly value: number;
   private readonly formatter: (abs: number) => string;
 

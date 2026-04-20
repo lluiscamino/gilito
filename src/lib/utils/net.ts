@@ -1,4 +1,4 @@
-export interface RequestOptions {
+interface RequestOptions {
   bearerToken?: string;
 }
 
