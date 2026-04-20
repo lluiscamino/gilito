@@ -21,6 +21,12 @@ export async function postJson<T>(
     },
     body: hasBody ? JSON.stringify(body) : undefined,
   });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    const message =
+      (errorBody as { error?: { message?: string } }).error?.message ?? res.statusText;
+    throw new Error(`POST ${url} failed (${res.status}): ${message}`);
+  }
   return res.json() as Promise<T>;
 }
 

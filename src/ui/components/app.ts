@@ -1,5 +1,6 @@
 import Navigo from 'navigo';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
+import { FixedRateCurrencyConverter } from '../../lib/fx/fixed_rate_currency_converter.ts';
 import { DashboardController } from '../controllers/dashboard_controller.ts';
 import { IncomeInputController } from '../controllers/income_input_controller.ts';
 import { IncomeSpreadsheetController } from '../controllers/income_spreadsheet_controller.ts';
@@ -21,6 +22,7 @@ export class App {
 
   render(root: HTMLElement): void {
     const repo = this.repo;
+    const converter = FixedRateCurrencyConverter.create();
     const router = new Navigo('/');
 
     const header = new Header().render();
@@ -44,7 +46,7 @@ export class App {
         }
         content.append(
           new MainDashboard(
-            new DashboardController(repo),
+            new DashboardController(repo, converter),
             () => router.navigate('/input'),
             () => router.navigate('/income/input'),
           ).render(),
@@ -53,10 +55,10 @@ export class App {
       })
       .on('/snapshots', () => {
         content.innerHTML = '';
-        const ctrl = new SpreadsheetController(repo);
+        const ctrl = new SpreadsheetController(repo, converter);
         content.append(
-          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, euros) =>
-            ctrl.updateCell(id, i, euros),
+          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, amount) =>
+            ctrl.updateCell(id, i, amount),
           ).render(),
         );
         nav.setActive('snapshots');
@@ -73,10 +75,10 @@ export class App {
       })
       .on('/income', () => {
         content.innerHTML = '';
-        const ctrl = new IncomeSpreadsheetController(repo);
+        const ctrl = new IncomeSpreadsheetController(repo, converter);
         content.append(
-          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, euros) =>
-            ctrl.updateCell(id, i, euros),
+          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, amount) =>
+            ctrl.updateCell(id, i, amount),
           ).render(),
         );
         nav.setActive('income');

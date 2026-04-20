@@ -1,5 +1,7 @@
+import { Currency, SUPPORTED_CURRENCIES } from '../../lib/fx/currency.ts';
 import type { IncomeInputController } from '../controllers/income_input_controller.ts';
 import type { NewIncomeSourceValue } from '../controllers/new_income_source_value.ts';
+import { parseDecimalInput } from '../formatting.ts';
 import { EntryInputRow } from './entry_input_row.ts';
 import { MonthPickerRow } from './month_picker_row.ts';
 import { NewEntryRow } from './new_entry_row.ts';
@@ -22,7 +24,7 @@ export class IncomeInputForm {
     const entryRows = this.controller.getSourceInputs().map((input) => new EntryInputRow(input));
     const existingEntryList = new ExistingEntryList(entryRows);
 
-    const newEntryRows: NewEntryRow[] = [];
+    const newEntryRows: Array<{ row: NewEntryRow; currencyEl: HTMLSelectElement }> = [];
     const newList = document.createElement('ul');
     newList.className = 'asset-input-list';
 
@@ -31,8 +33,12 @@ export class IncomeInputForm {
     addSourceBtn.className = 'btn-add-asset';
     addSourceBtn.textContent = '+ Add Source';
     addSourceBtn.addEventListener('click', () => {
-      const row = new NewEntryRow(newList, { namePlaceholder: 'Source name' });
-      newEntryRows.push(row);
+      const currencyEl = makeCurrencySelect();
+      const row = new NewEntryRow(newList, {
+        namePlaceholder: 'Source name',
+        extraFields: [currencyEl],
+      });
+      newEntryRows.push({ row, currencyEl });
       newList.append(row.render());
       row.nameEl.focus();
     });
@@ -48,13 +54,14 @@ export class IncomeInputForm {
       confirmText: 'Save Income',
       onConfirm: () => {
         const date = monthPicker.getDate();
-        const values = new Map(entryRows.map((r) => [r.id, r.getEuros()]));
+        const values = new Map(entryRows.map((r) => [r.id, r.getAmount()]));
 
         const newSources: NewIncomeSourceValue[] = newEntryRows
-          .filter((r) => r.nameEl.isConnected && r.nameEl.value.trim() !== '')
-          .map((r) => ({
-            name: r.nameEl.value.trim(),
-            euros: parseFloat(r.valueEl.value) || 0,
+          .filter(({ row }) => row.nameEl.isConnected && row.nameEl.value.trim() !== '')
+          .map(({ row, currencyEl }) => ({
+            name: row.nameEl.value.trim(),
+            amount: parseDecimalInput(row.valueEl.value, 0),
+            currency: currencyEl.value as Currency,
           }));
 
         this.controller.saveIncomeSheet(date, values, newSources);
@@ -62,4 +69,17 @@ export class IncomeInputForm {
       },
     }).render();
   }
+}
+
+function makeCurrencySelect(): HTMLSelectElement {
+  const select = document.createElement('select');
+  select.className = 'asset-currency-select';
+  select.setAttribute('aria-label', 'Source currency');
+  for (const currency of SUPPORTED_CURRENCIES) {
+    const option = document.createElement('option');
+    option.value = currency;
+    option.textContent = currency;
+    select.append(option);
+  }
+  return select;
 }

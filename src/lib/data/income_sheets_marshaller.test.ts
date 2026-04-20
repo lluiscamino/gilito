@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Money, Currencies } from 'ts-money';
+import { Money } from 'ts-money';
 import { IncomeSheetsMarshaller } from './income_sheets_marshaller.ts';
 import type { IncomeSource } from '../income/income_source.ts';
 import type { SheetRow } from '../google/sheets/sheet_row.ts';
@@ -10,8 +10,8 @@ const toSerial = (date: Date) => date.getTime() / 86400000 + 25569;
 const JAN_2024 = new Date(Date.UTC(2024, 0, 1));
 const FEB_2024 = new Date(Date.UTC(2024, 1, 1));
 
-const salary: IncomeSource = { id: 'salary', name: 'Salary' };
-const freelance: IncomeSource = { id: 'freelance', name: 'Freelance' };
+const salary: IncomeSource = { id: 'salary', name: 'Salary', currency: 'EUR' };
+const freelance: IncomeSource = { id: 'freelance', name: 'Freelance', currency: 'EUR' };
 
 describe('IncomeSheetsMarshaller', () => {
   describe('parse', () => {
@@ -54,7 +54,7 @@ describe('IncomeSheetsMarshaller', () => {
       const sheets = [
         {
           date: JAN_2024,
-          entries: [{ source: salary, amount: new Money(500000, Currencies.EUR) }],
+          entries: [{ source: salary, amount: new Money(500000, 'EUR') }],
         },
       ];
       const rows = marshaller.toSheetRows(sheets, ['salary']);
@@ -73,13 +73,13 @@ describe('IncomeSheetsMarshaller', () => {
       const sheets = [
         {
           date: JAN_2024,
-          entries: [{ source: salary, amount: new Money(500000, Currencies.EUR) }],
+          entries: [{ source: salary, amount: new Money(500000, 'EUR') }],
         },
         {
           date: FEB_2024,
           entries: [
-            { source: salary, amount: new Money(500000, Currencies.EUR) },
-            { source: freelance, amount: new Money(120000, Currencies.EUR) },
+            { source: salary, amount: new Money(500000, 'EUR') },
+            { source: freelance, amount: new Money(120000, 'EUR') },
           ],
         },
       ];

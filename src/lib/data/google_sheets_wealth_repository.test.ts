@@ -3,6 +3,7 @@ import { GoogleSheetsWealthRepository } from './google_sheets_wealth_repository.
 import { WealthDataSpreadsheet } from './wealth_data_spreadsheet.ts';
 import { Money, Currencies } from 'ts-money';
 import { findCategoryById } from '../assets/asset_category.ts';
+import { Currency } from '../fx/currency.ts';
 
 vi.mock('./wealth_data_spreadsheet.ts', () => ({
   WealthDataSpreadsheet: {
@@ -25,8 +26,9 @@ const cashAsset = {
   id: 'cash',
   name: 'Cash',
   category: findCategoryById('defensive.cash.savings'),
+  currency: Currency.EUR,
 };
-const salarySource = { id: 'salary', name: 'Salary' };
+const salarySource = { id: 'salary', name: 'Salary', currency: Currency.EUR };
 
 function makeBalanceSheet(year: number) {
   return {

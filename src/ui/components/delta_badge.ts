@@ -1,4 +1,5 @@
-import { formatEur } from '../formatting.ts';
+import { Money } from 'ts-money';
+import { formatMoney } from '../formatting.ts';
 
 export class DeltaBadge {
   private readonly value: number;
@@ -19,8 +20,8 @@ export class DeltaBadge {
 }
 
 export class MoneyDeltaBadge extends DeltaBadge {
-  constructor(cents: number) {
-    super(cents, (n) => formatEur(n));
+  constructor(money: Money) {
+    super(money.amount, (n) => formatMoney(new Money(n, money.currency)));
   }
 }
 

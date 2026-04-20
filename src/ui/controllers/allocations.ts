@@ -7,11 +7,13 @@ export const AllocationLevel = {
 
 export type AllocationLevel = (typeof AllocationLevel)[keyof typeof AllocationLevel];
 
+import type { Money } from 'ts-money';
+
 export interface AllocationEntry {
   readonly label: string;
   readonly emoji: string;
   readonly color: string;
-  readonly cents: number;
+  readonly amount: Money;
   readonly percentage: number;
 }
 

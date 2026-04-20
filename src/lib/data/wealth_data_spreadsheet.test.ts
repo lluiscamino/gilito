@@ -54,9 +54,10 @@ const cashAsset: Asset = {
   id: 'cash',
   name: 'Cash',
   category: findCategoryById('defensive.cash.savings'),
+  currency: 'EUR',
 };
 
-const salarySource: IncomeSource = { id: 'salary', name: 'Salary' };
+const salarySource: IncomeSource = { id: 'salary', name: 'Salary', currency: 'EUR' };
 
 const toSerial = (date: Date) => date.getTime() / 86400000 + 25569;
 const JAN_2024 = new Date(Date.UTC(2024, 0, 1));
@@ -112,8 +113,13 @@ describe('WealthDataSpreadsheet', () => {
 
     it('parses assets and balance sheets from sheet data', async () => {
       const assetRows: SheetRow[] = [
-        [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }],
-        [{ value: 'cash' }, { value: 'Cash' }, { value: 'defensive.cash.savings' }],
+        [{ value: 'ID' }, { value: 'Name' }, { value: 'Category' }, { value: 'Currency' }],
+        [
+          { value: 'cash' },
+          { value: 'Cash' },
+          { value: 'defensive.cash.savings' },
+          { value: 'EUR' },
+        ],
       ];
       const dataRows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }],
@@ -132,8 +138,8 @@ describe('WealthDataSpreadsheet', () => {
 
     it('parses income sources and income sheets from sheet data', async () => {
       const sourceRows: SheetRow[] = [
-        [{ value: 'ID' }, { value: 'Name' }],
-        [{ value: 'salary' }, { value: 'Salary' }],
+        [{ value: 'ID' }, { value: 'Name' }, { value: 'Currency' }],
+        [{ value: 'salary' }, { value: 'Salary' }, { value: 'EUR' }],
       ];
       const incomeRows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'salary' }],

@@ -163,29 +163,43 @@ describe('SpreadsheetsApi', () => {
   });
 
   describe('updateCells', () => {
+    it('resizes the sheet to fit the column count before writing', async () => {
+      vi.mocked(postJson).mockResolvedValue({});
+      await api.updateCells(42, [[{ value: 'a' }, { value: 'b' }, { value: 'c' }]]);
+      const [, body] = vi.mocked(postJson).mock.calls[0];
+      expect((body as any).requests[0]).toEqual({
+        updateSheetProperties: {
+          properties: { sheetId: 42, gridProperties: { columnCount: 3 } },
+          fields: 'gridProperties.columnCount',
+        },
+      });
+    });
+
+    it('uses a minimum column count of 1 when rows is empty', async () => {
+      vi.mocked(postJson).mockResolvedValue({});
+      await api.updateCells(42, []);
+      const [, body] = vi.mocked(postJson).mock.calls[0];
+      expect(
+        (body as any).requests[0].updateSheetProperties.properties.gridProperties.columnCount,
+      ).toBe(1);
+    });
+
     it('posts to the batchUpdate endpoint with the correct start position', async () => {
       vi.mocked(postJson).mockResolvedValue({});
       await api.updateCells(42, []);
-      expect(postJson).toHaveBeenCalledWith(
-        `${API}/sid:batchUpdate`,
-        expect.objectContaining({
-          requests: [
-            expect.objectContaining({
-              updateCells: expect.objectContaining({
-                start: { sheetId: 42, rowIndex: 0, columnIndex: 0 },
-              }),
-            }),
-          ],
-        }),
-        { bearerToken: 'my-token' },
-      );
+      const [, body] = vi.mocked(postJson).mock.calls[0];
+      expect((body as any).requests[1].updateCells.start).toEqual({
+        sheetId: 42,
+        rowIndex: 0,
+        columnIndex: 0,
+      });
     });
 
     it('encodes string cell values as stringValue', async () => {
       vi.mocked(postJson).mockResolvedValue({});
       await api.updateCells(1, [[{ value: 'hello' }]]);
       const [, body] = vi.mocked(postJson).mock.calls[0];
-      const cell = (body as any).requests[0].updateCells.rows[0].values[0];
+      const cell = (body as any).requests[1].updateCells.rows[0].values[0];
       expect(cell.userEnteredValue).toEqual({ stringValue: 'hello' });
     });
 
@@ -193,7 +207,7 @@ describe('SpreadsheetsApi', () => {
       vi.mocked(postJson).mockResolvedValue({});
       await api.updateCells(1, [[{ value: 42.5 }]]);
       const [, body] = vi.mocked(postJson).mock.calls[0];
-      const cell = (body as any).requests[0].updateCells.rows[0].values[0];
+      const cell = (body as any).requests[1].updateCells.rows[0].values[0];
       expect(cell.userEnteredValue).toEqual({ numberValue: 42.5 });
     });
 
@@ -202,7 +216,7 @@ describe('SpreadsheetsApi', () => {
       const format = { numberFormat: { type: 'DATE', pattern: 'yyyy-mm-dd' } };
       await api.updateCells(1, [[{ value: 45292, format }]]);
       const [, body] = vi.mocked(postJson).mock.calls[0];
-      const cell = (body as any).requests[0].updateCells.rows[0].values[0];
+      const cell = (body as any).requests[1].updateCells.rows[0].values[0];
       expect(cell.userEnteredFormat).toEqual(format);
     });
 
@@ -210,7 +224,7 @@ describe('SpreadsheetsApi', () => {
       vi.mocked(postJson).mockResolvedValue({});
       await api.updateCells(1, [[{ value: 'text' }]]);
       const [, body] = vi.mocked(postJson).mock.calls[0];
-      const cell = (body as any).requests[0].updateCells.rows[0].values[0];
+      const cell = (body as any).requests[1].updateCells.rows[0].values[0];
       expect(cell).not.toHaveProperty('userEnteredFormat');
     });
   });

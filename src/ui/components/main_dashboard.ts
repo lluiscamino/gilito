@@ -40,7 +40,7 @@ export class MainDashboard {
     actions.append(snapshotCard, incomeCard);
 
     main.append(
-      new NetWorthHero(this.controller.getTotalCents(), this.controller.getDelta()).render(),
+      new NetWorthHero(this.controller.getTotal(), this.controller.getDelta()).render(),
       actions,
       new WealthChart(this.controller.getWealthHistory()).render(),
       new AssetBreakdown(this.controller.getAllocations()).render(),

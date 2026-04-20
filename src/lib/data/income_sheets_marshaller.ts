@@ -1,4 +1,5 @@
-import { Money, Currencies } from 'ts-money';
+import { Money } from 'ts-money';
+import { toDecimal } from '../fx/money.ts';
 import type { IncomeSource } from '../income/income_source.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
 import type { SheetRow } from '../google/sheets/sheet_row.ts';
@@ -16,7 +17,7 @@ export class IncomeSheetsMarshaller {
           const source = sources.find((s) => s.id === id);
           const cents = Math.round((values[i] ?? 0) * 100);
           if (!source || cents === 0) return null;
-          return { source, amount: new Money(cents, Currencies.EUR) };
+          return { source, amount: new Money(cents, source.currency) };
         })
         .filter((e): e is NonNullable<typeof e> => e !== null);
       return { date: fromSheetsDate(dateSerial), entries };
@@ -32,9 +33,10 @@ export class IncomeSheetsMarshaller {
       },
       ...sourceIds.map((id) => {
         const entry = sheet.entries.find((e) => e.source.id === id);
+        const currency = entry?.source.currency ?? 'EUR';
         return {
-          value: entry ? entry.amount.amount / 100 : 0,
-          format: { numberFormat: { type: 'CURRENCY', pattern: '€#,##0.00' } },
+          value: entry ? toDecimal(entry.amount) : 0,
+          format: { numberFormat: { type: 'CURRENCY', pattern: currencyPattern(currency) } },
         };
       }),
     ]);
@@ -48,4 +50,14 @@ function toSheetsDate(date: Date): number {
 
 function fromSheetsDate(serial: number): Date {
   return new Date(Math.round((serial - 25569) * 86400000));
+}
+
+const CURRENCY_PATTERNS: Record<string, string> = {
+  EUR: '€#,##0.00',
+  USD: '$#,##0.00',
+  GBP: '£#,##0.00',
+};
+
+function currencyPattern(currency: string): string {
+  return CURRENCY_PATTERNS[currency] ?? '#,##0.00';
 }

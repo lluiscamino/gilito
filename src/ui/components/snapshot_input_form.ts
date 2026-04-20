@@ -1,6 +1,8 @@
 import type { AssetCategory } from '../../lib/assets/asset_category.ts';
+import { Currency, SUPPORTED_CURRENCIES } from '../../lib/fx/currency.ts';
 import type { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import type { NewAssetValue } from '../controllers/new_asset_value.ts';
+import { parseDecimalInput } from '../formatting.ts';
 import { EntryInputRow } from './entry_input_row.ts';
 import { MonthPickerRow } from './month_picker_row.ts';
 import { NewEntryRow } from './new_entry_row.ts';
@@ -23,7 +25,11 @@ export class SnapshotInputForm {
     const entryRows = this.controller.getEntryInputs().map((input) => new EntryInputRow(input));
     const existingEntryList = new ExistingEntryList(entryRows);
 
-    const newEntryRows: Array<{ row: NewEntryRow; categoryEl: HTMLSelectElement }> = [];
+    const newEntryRows: Array<{
+      row: NewEntryRow;
+      categoryEl: HTMLSelectElement;
+      currencyEl: HTMLSelectElement;
+    }> = [];
     const newList = document.createElement('ul');
     newList.className = 'asset-input-list';
 
@@ -33,11 +39,12 @@ export class SnapshotInputForm {
     addAssetBtn.textContent = '+ Add Asset';
     addAssetBtn.addEventListener('click', () => {
       const categoryEl = makeCategorySelect(this.controller.getCategories());
+      const currencyEl = makeCurrencySelect();
       const row = new NewEntryRow(newList, {
         namePlaceholder: 'Asset name',
-        extraFields: [categoryEl],
+        extraFields: [categoryEl, currencyEl],
       });
-      newEntryRows.push({ row, categoryEl });
+      newEntryRows.push({ row, categoryEl, currencyEl });
       newList.append(row.render());
       row.nameEl.focus();
     });
@@ -53,14 +60,15 @@ export class SnapshotInputForm {
       confirmText: 'Save Snapshot',
       onConfirm: () => {
         const date = monthPicker.getDate();
-        const values = new Map(entryRows.map((r) => [r.id, r.getEuros()]));
+        const values = new Map(entryRows.map((r) => [r.id, r.getAmount()]));
 
         const newAssets: NewAssetValue[] = newEntryRows
           .filter(({ row }) => row.nameEl.isConnected && row.nameEl.value.trim() !== '')
-          .map(({ row, categoryEl }) => ({
+          .map(({ row, categoryEl, currencyEl }) => ({
             name: row.nameEl.value.trim(),
             categoryId: categoryEl.value,
-            euros: parseFloat(row.valueEl.value) || 0,
+            amount: parseDecimalInput(row.valueEl.value, 0),
+            currency: currencyEl.value as Currency,
           }));
 
         this.controller.saveSnapshot(date, values, newAssets);
@@ -78,6 +86,19 @@ function makeCategorySelect(categories: AssetCategory[]): HTMLSelectElement {
     const option = document.createElement('option');
     option.value = category.id;
     option.textContent = category.name;
+    select.append(option);
+  }
+  return select;
+}
+
+function makeCurrencySelect(): HTMLSelectElement {
+  const select = document.createElement('select');
+  select.className = 'asset-currency-select';
+  select.setAttribute('aria-label', 'Asset currency');
+  for (const currency of SUPPORTED_CURRENCIES) {
+    const option = document.createElement('option');
+    option.value = currency;
+    option.textContent = currency;
     select.append(option);
   }
   return select;

@@ -7,46 +7,54 @@ const marshaller = new IncomeSourcesMarshaller();
 
 describe('IncomeSourcesMarshaller', () => {
   describe('parse', () => {
-    it('parses sources from sheet rows', () => {
+    it('parses sources from sheet rows with currency', () => {
       const rows: SheetRow[] = [
-        [{ value: 'ID' }, { value: 'Name' }],
-        [{ value: 'salary' }, { value: 'Salary' }],
-        [{ value: 'freelance' }, { value: 'Freelance' }],
+        [{ value: 'ID' }, { value: 'Name' }, { value: 'Currency' }],
+        [{ value: 'salary' }, { value: 'Salary' }, { value: 'EUR' }],
+        [{ value: 'freelance' }, { value: 'Freelance' }, { value: 'USD' }],
       ];
       const sources = marshaller.parse(rows);
       expect(sources).toHaveLength(2);
-      expect(sources[0]).toEqual({ id: 'salary', name: 'Salary' });
-      expect(sources[1]).toEqual({ id: 'freelance', name: 'Freelance' });
+      expect(sources[0]).toEqual({ id: 'salary', name: 'Salary', currency: 'EUR' });
+      expect(sources[1]).toEqual({ id: 'freelance', name: 'Freelance', currency: 'USD' });
+    });
+
+    it('skips rows with missing or unknown currency', () => {
+      const rows: SheetRow[] = [
+        [{ value: 'ID' }, { value: 'Name' }],
+        [{ value: 'salary' }, { value: 'Salary' }],
+      ];
+      expect(marshaller.parse(rows)).toHaveLength(0);
     });
 
     it('skips rows with no id', () => {
       const rows: SheetRow[] = [
-        [{ value: 'ID' }, { value: 'Name' }],
-        [{ value: '' }, { value: 'Empty' }],
+        [{ value: 'ID' }, { value: 'Name' }, { value: 'Currency' }],
+        [{ value: '' }, { value: 'Empty' }, { value: 'EUR' }],
       ];
       expect(marshaller.parse(rows)).toHaveLength(0);
     });
 
     it('returns empty array for header-only input', () => {
-      const rows: SheetRow[] = [[{ value: 'ID' }, { value: 'Name' }]];
+      const rows: SheetRow[] = [[{ value: 'ID' }, { value: 'Name' }, { value: 'Currency' }]];
       expect(marshaller.parse(rows)).toEqual([]);
     });
   });
 
   describe('toSheetRows', () => {
-    it('produces a header row followed by source rows', () => {
+    it('produces a header row followed by source rows with currency', () => {
       const sources: IncomeSource[] = [
-        { id: 'salary', name: 'Salary' },
-        { id: 'freelance', name: 'Freelance' },
+        { id: 'salary', name: 'Salary', currency: 'EUR' },
+        { id: 'freelance', name: 'Freelance', currency: 'USD' },
       ];
       const rows = marshaller.toSheetRows(sources);
-      expect(rows[0].map((c) => c.value)).toEqual(['ID', 'Name']);
-      expect(rows[1].map((c) => c.value)).toEqual(['salary', 'Salary']);
-      expect(rows[2].map((c) => c.value)).toEqual(['freelance', 'Freelance']);
+      expect(rows[0].map((c) => c.value)).toEqual(['ID', 'Name', 'Currency']);
+      expect(rows[1].map((c) => c.value)).toEqual(['salary', 'Salary', 'EUR']);
+      expect(rows[2].map((c) => c.value)).toEqual(['freelance', 'Freelance', 'USD']);
     });
 
     it('round-trips through parse and toSheetRows', () => {
-      const sources: IncomeSource[] = [{ id: 'salary', name: 'Salary' }];
+      const sources: IncomeSource[] = [{ id: 'salary', name: 'Salary', currency: 'EUR' }];
       expect(marshaller.parse(marshaller.toSheetRows(sources))).toEqual(sources);
     });
   });

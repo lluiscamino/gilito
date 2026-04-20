@@ -91,7 +91,12 @@ describe('getSnapshotsPerCategoryLevel', () => {
   ): BalanceSheet => ({
     date: new Date('2024-01-01'),
     snapshots: entries.map(({ assetId, categoryId }) => ({
-      asset: { id: assetId, name: assetId, category: findCategoryById(categoryId) },
+      asset: {
+        id: assetId,
+        name: assetId,
+        category: findCategoryById(categoryId),
+        currency: 'EUR',
+      },
       value: new Money(100, EUR),
     })),
   });

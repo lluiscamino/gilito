@@ -1,6 +1,6 @@
 import type { Allocations, AllocationEntry } from '../controllers/allocations.ts';
 import { AllocationLevel } from '../controllers/allocations.ts';
-import { formatEur } from '../formatting.ts';
+import { formatMoney } from '../formatting.ts';
 
 const LEVELS = [
   AllocationLevel.Overview,
@@ -163,7 +163,7 @@ function renderList(entries: readonly AllocationEntry[]): HTMLElement {
           <div class="breakdown__fill" style="width:${a.percentage}%;background:${a.color}"></div>
         </div>
         <span class="breakdown__pct" style="color:${a.color}">${Math.round(a.percentage)}%</span>
-        <span class="breakdown__amount">${formatEur(a.cents)}</span>
+        <span class="breakdown__amount">${formatMoney(a.amount)}</span>
       </li>`,
     )
     .join('');

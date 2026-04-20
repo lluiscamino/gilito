@@ -19,14 +19,14 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('returns empty array when only header row is present', () => {
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const rows: SheetRow[] = [[{ value: 'Date' }, { value: 'cash' }]];
       expect(marshaller.parse(rows, [asset])).toEqual([]);
     });
 
     it('parses date serial into a Date', () => {
       const date = new Date(Date.UTC(2024, 0, 1));
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }],
         [{ value: toSerial(date) }, { value: 100 }],
@@ -36,19 +36,29 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('parses euro amount into cents', () => {
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }],
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 1500.5 }],
       ];
       const result = marshaller.parse(rows, [asset]);
       expect(result[0].snapshots[0].value.amount).toBe(150050);
-      expect(result[0].snapshots[0].value.currency).toBe('EUR');
+      expect(result[0].snapshots[0].value.currency).toBe('EUR'); // asset currency
     });
 
     it('parses multiple assets per row', () => {
-      const cashAsset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
-      const stocksAsset: Asset = { id: 'stocks', name: 'ETF', category: EQUITIES_GENERAL };
+      const cashAsset: Asset = {
+        id: 'cash',
+        name: 'Cash',
+        category: CASH_SAVINGS,
+        currency: 'EUR',
+      };
+      const stocksAsset: Asset = {
+        id: 'stocks',
+        name: 'ETF',
+        category: EQUITIES_GENERAL,
+        currency: 'EUR',
+      };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }, { value: 'stocks' }],
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 500 }, { value: 1000 }],
@@ -62,7 +72,7 @@ describe('BalanceSheetsMarshaller', () => {
     it('parses multiple balance sheet rows', () => {
       const jan = new Date(Date.UTC(2024, 0, 1));
       const feb = new Date(Date.UTC(2024, 1, 1));
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }],
         [{ value: toSerial(jan) }, { value: 1000 }],
@@ -75,7 +85,7 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('skips snapshots for unknown asset ids', () => {
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'unknown' }, { value: 'cash' }],
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 100 }, { value: 200 }],
@@ -86,8 +96,18 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('skips zero-value snapshots', () => {
-      const cashAsset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
-      const stocksAsset: Asset = { id: 'stocks', name: 'ETF', category: EQUITIES_GENERAL };
+      const cashAsset: Asset = {
+        id: 'cash',
+        name: 'Cash',
+        category: CASH_SAVINGS,
+        currency: 'EUR',
+      };
+      const stocksAsset: Asset = {
+        id: 'stocks',
+        name: 'ETF',
+        category: EQUITIES_GENERAL,
+        currency: 'EUR',
+      };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }, { value: 'stocks' }],
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 0 }, { value: 500 }],
@@ -98,8 +118,18 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('treats missing column values as zero and skips them', () => {
-      const cashAsset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
-      const stocksAsset: Asset = { id: 'stocks', name: 'ETF', category: EQUITIES_GENERAL };
+      const cashAsset: Asset = {
+        id: 'cash',
+        name: 'Cash',
+        category: CASH_SAVINGS,
+        currency: 'EUR',
+      };
+      const stocksAsset: Asset = {
+        id: 'stocks',
+        name: 'ETF',
+        category: EQUITIES_GENERAL,
+        currency: 'EUR',
+      };
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'cash' }, { value: 'stocks' }],
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 100 }], // stocks column missing
@@ -119,7 +149,7 @@ describe('BalanceSheetsMarshaller', () => {
 
     it('encodes date as sheets serial number with DATE format', () => {
       const date = new Date(Date.UTC(2024, 0, 1));
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const bs = { date, snapshots: [{ asset, value: new Money(100000, EUR) }] };
       const rows = marshaller.toSheetRows([bs], ['cash']);
       expect(rows[1][0].value).toBe(toSerial(date));
@@ -127,7 +157,7 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('encodes asset value as euros with CURRENCY format', () => {
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const bs = {
         date: new Date(Date.UTC(2024, 0, 1)),
         snapshots: [{ asset, value: new Money(150050, EUR) }],
@@ -138,7 +168,7 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('fills 0 for assets absent from a balance sheet', () => {
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const bs = {
         date: new Date(Date.UTC(2024, 0, 1)),
         snapshots: [{ asset, value: new Money(100000, EUR) }],
@@ -148,7 +178,7 @@ describe('BalanceSheetsMarshaller', () => {
     });
 
     it('returns one data row per balance sheet', () => {
-      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
+      const asset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
       const bs1 = {
         date: new Date(Date.UTC(2024, 0, 1)),
         snapshots: [{ asset, value: new Money(100000, EUR) }],
@@ -165,8 +195,13 @@ describe('BalanceSheetsMarshaller', () => {
   it('round-trips balance sheets through toSheetRows → parse', () => {
     const jan = new Date(Date.UTC(2024, 0, 1));
     const feb = new Date(Date.UTC(2024, 1, 1));
-    const cashAsset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS };
-    const stocksAsset: Asset = { id: 'stocks', name: 'ETF', category: EQUITIES_GENERAL };
+    const cashAsset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
+    const stocksAsset: Asset = {
+      id: 'stocks',
+      name: 'ETF',
+      category: EQUITIES_GENERAL,
+      currency: 'EUR',
+    };
     const bs1 = {
       date: jan,
       snapshots: [

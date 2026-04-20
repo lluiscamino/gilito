@@ -68,10 +68,17 @@ export class SpreadsheetsApi {
   }
 
   async updateCells(sheetId: number, rows: SheetRow[]): Promise<void> {
+    const colCount = rows.reduce((max, row) => Math.max(max, row.length), 1);
     await postJson(
       `${SHEETS_API}/${this.spreadsheetId}:batchUpdate`,
       {
         requests: [
+          {
+            updateSheetProperties: {
+              properties: { sheetId, gridProperties: { columnCount: colCount } },
+              fields: 'gridProperties.columnCount',
+            },
+          },
           {
             updateCells: {
               rows: rows.map((row) => ({ values: row.map(toApiCell) })),

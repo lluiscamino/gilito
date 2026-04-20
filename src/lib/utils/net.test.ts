@@ -4,7 +4,7 @@ import { getJson, postJson } from './net.ts';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-const jsonResponse = (data: unknown) => ({ json: () => Promise.resolve(data) });
+const jsonResponse = (data: unknown) => ({ ok: true, json: () => Promise.resolve(data) });
 
 describe('getJson', () => {
   beforeEach(() => mockFetch.mockReset());

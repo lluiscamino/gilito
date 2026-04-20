@@ -1,26 +1,28 @@
-import type { Money } from 'ts-money';
-import { formatEur } from '../formatting.ts';
+import { Money } from 'ts-money';
+import { formatMoney, toDecimal } from '../formatting.ts';
 import { MoneyDeltaBadge } from './delta_badge.ts';
 
 export interface TableColumn {
   readonly id: string;
   readonly name: string;
+  readonly currency?: string;
 }
 
 export interface TableRow {
   readonly date: Date;
   readonly values: Map<string, Money>;
+  readonly total: Money;
 }
 
 export class DataTable {
   private readonly columns: readonly TableColumn[];
   private readonly rows: readonly TableRow[];
-  private readonly onUpdateCell: (id: string, dateIndex: number, euros: number) => void;
+  private readonly onUpdateCell: (id: string, dateIndex: number, amount: number) => void;
 
   constructor(
     columns: readonly TableColumn[],
     rows: readonly TableRow[],
-    onUpdateCell: (id: string, dateIndex: number, euros: number) => void,
+    onUpdateCell: (id: string, dateIndex: number, amount: number) => void,
   ) {
     this.columns = columns;
     this.rows = rows;
@@ -42,14 +44,10 @@ export class DataTable {
     headRow.innerHTML = `<th class="col-date">Date</th><th>Total</th><th>Change</th>`;
     for (const col of this.columns) {
       const th = document.createElement('th');
-      th.textContent = col.name;
+      th.textContent = col.currency ? `${col.name} (${col.currency})` : col.name;
       headRow.append(th);
     }
     thead.append(headRow);
-
-    const totals = this.rows.map((row) =>
-      [...row.values.values()].reduce((sum, m) => sum + m.amount, 0),
-    );
 
     const tbody = document.createElement('tbody');
     for (let i = this.rows.length - 1; i >= 0; i--) {
@@ -63,18 +61,18 @@ export class DataTable {
 
       const totalTd = document.createElement('td');
       totalTd.className = 'col-total';
-      totalTd.textContent = formatEur(totals[i]);
+      totalTd.textContent = formatMoney(row.total);
       tr.append(totalTd);
 
       const deltaTd = document.createElement('td');
       deltaTd.className = 'col-delta';
-      if (i > 0) deltaTd.append(makeDeltaEl(totals[i], totals[i - 1]));
+      if (i > 0) deltaTd.append(makeDeltaEl(row.total, this.rows[i - 1].total));
       tr.append(deltaTd);
 
       for (const col of this.columns) {
-        const cents = row.values.get(col.id)?.amount ?? 0;
+        const money = row.values.get(col.id);
         const td = document.createElement('td');
-        td.append(this.makeInput(col.id, i, cents));
+        td.append(this.makeInput(col.id, i, money));
         tr.append(td);
       }
 
@@ -87,8 +85,8 @@ export class DataTable {
     return main;
   }
 
-  private makeInput(id: string, dateIndex: number, cents: number): HTMLInputElement {
-    let current = cents / 100;
+  private makeInput(id: string, dateIndex: number, money: Money | undefined): HTMLInputElement {
+    let current = money ? toDecimal(money) : 0;
 
     const input = document.createElement('input');
     input.type = 'number';
@@ -124,6 +122,6 @@ export class DataTable {
   }
 }
 
-function makeDeltaEl(cents: number, prevCents: number): HTMLElement {
-  return new MoneyDeltaBadge(cents - prevCents).render();
+function makeDeltaEl(total: Money, prevTotal: Money): HTMLElement {
+  return new MoneyDeltaBadge(new Money(total.amount - prevTotal.amount, total.currency)).render();
 }

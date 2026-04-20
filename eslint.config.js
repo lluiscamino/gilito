@@ -22,7 +22,8 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['**/lib/**'],
+              // currency.ts is pure constants/types with no business logic — safe to use directly in UI
+              group: ['**/lib/**', '!**/lib/fx/currency.ts'],
               message: 'UI components must not import from lib. Move logic to a controller.',
               allowTypeImports: true,
             },

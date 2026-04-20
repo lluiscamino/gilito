@@ -1,4 +1,7 @@
+import type { Currency } from '../../lib/fx/currency.ts';
+
 export interface NewIncomeSourceValue {
   readonly name: string;
-  readonly euros: number;
+  readonly amount: number;
+  readonly currency: Currency;
 }

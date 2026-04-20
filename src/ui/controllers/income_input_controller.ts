@@ -1,4 +1,4 @@
-import { Money, Currencies } from 'ts-money';
+import { Money } from 'ts-money';
 import type { IncomeSource } from '../../lib/income/income_source.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { EntryInput } from './entry_input.ts';
@@ -17,7 +17,7 @@ export class IncomeInputController {
     return latest.entries.map((e) => ({
       id: e.source.id,
       name: e.source.name,
-      lastCents: e.amount.amount,
+      lastValue: e.amount,
     }));
   }
 
@@ -30,9 +30,9 @@ export class IncomeInputController {
 
     const entries = latest
       ? latest.entries.map((e) => {
-          const euros = values.get(e.source.id);
-          const cents = euros !== undefined ? Math.round(euros * 100) : e.amount.amount;
-          return { source: e.source, amount: new Money(cents, Currencies.EUR) };
+          const amount = values.get(e.source.id);
+          const cents = amount !== undefined ? Math.round(amount * 100) : e.amount.amount;
+          return { source: e.source, amount: new Money(cents, e.source.currency) };
         })
       : [];
 
@@ -40,10 +40,11 @@ export class IncomeInputController {
       const source: IncomeSource = {
         id: `${newSource.name}-${Date.now()}`,
         name: newSource.name,
+        currency: newSource.currency,
       };
       entries.push({
         source,
-        amount: new Money(Math.round(newSource.euros * 100), Currencies.EUR),
+        amount: new Money(Math.round(newSource.amount * 100), newSource.currency),
       });
     }
 

@@ -1,4 +1,4 @@
-import { Money, Currencies } from 'ts-money';
+import { Money } from 'ts-money';
 import {
   findCategoryById,
   isValidCategoryId,
@@ -23,7 +23,7 @@ export class SnapshotInputController {
     return latest.snapshots.map((s) => ({
       id: s.asset.id,
       name: s.asset.name,
-      lastCents: s.value.amount,
+      lastValue: s.value,
     }));
   }
 
@@ -40,9 +40,9 @@ export class SnapshotInputController {
 
     const snapshots = latest
       ? latest.snapshots.map((s) => {
-          const euros = values.get(s.asset.id);
-          const cents = euros !== undefined ? Math.round(euros * 100) : s.value.amount;
-          return { asset: s.asset, value: new Money(cents, Currencies.EUR) };
+          const amount = values.get(s.asset.id);
+          const cents = amount !== undefined ? Math.round(amount * 100) : s.value.amount;
+          return { asset: s.asset, value: new Money(cents, s.asset.currency) };
         })
       : [];
 
@@ -53,8 +53,12 @@ export class SnapshotInputController {
         id: `${newAsset.name}-${category.id}-${Date.now()}`,
         name: newAsset.name,
         category,
+        currency: newAsset.currency,
       };
-      snapshots.push({ asset, value: new Money(Math.round(newAsset.euros * 100), Currencies.EUR) });
+      snapshots.push({
+        asset,
+        value: new Money(Math.round(newAsset.amount * 100), newAsset.currency),
+      });
     }
 
     this.repo.addBalanceSheet({ date, snapshots });

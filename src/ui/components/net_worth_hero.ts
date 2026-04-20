@@ -1,13 +1,14 @@
+import type { Money } from 'ts-money';
 import type { WealthDelta } from '../controllers/wealth_delta.ts';
-import { formatEur } from '../formatting.ts';
+import { formatMoney } from '../formatting.ts';
 import { MoneyDeltaBadge, PercentDeltaBadge } from './delta_badge.ts';
 
 export class NetWorthHero {
-  private readonly totalCents: number;
+  private readonly total: Money;
   private readonly delta: WealthDelta | null;
 
-  constructor(totalCents: number, delta: WealthDelta | null) {
-    this.totalCents = totalCents;
+  constructor(total: Money, delta: WealthDelta | null) {
+    this.total = total;
     this.delta = delta;
   }
 
@@ -22,7 +23,7 @@ export class NetWorthHero {
 
     const amount = document.createElement('p');
     amount.className = 'hero__amount';
-    amount.textContent = formatEur(this.totalCents);
+    amount.textContent = formatMoney(this.total);
 
     section.append(label, amount);
     if (this.delta) section.append(this.renderDelta(this.delta));
@@ -42,7 +43,7 @@ export class NetWorthHero {
     since.textContent = 'since last snapshot';
 
     p.append(
-      new MoneyDeltaBadge(delta.cents).render(),
+      new MoneyDeltaBadge(delta.delta).render(),
       sep,
       new PercentDeltaBadge(delta.percentage).render(),
       since,
