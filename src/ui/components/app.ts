@@ -23,7 +23,7 @@ export class App {
   render(root: HTMLElement): void {
     const repo = this.repo;
     const converter = FixedRateCurrencyConverter.create();
-    const router = new Navigo('/');
+    const router = new Navigo(import.meta.env.BASE_URL);
 
     const header = new Header().render();
     const content = document.createElement('div');
