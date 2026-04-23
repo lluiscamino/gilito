@@ -157,8 +157,8 @@ describe('SpreadsheetsApi', () => {
       const [, body] = vi.mocked(postJson).mock.calls[0];
       expect((body as any).requests[0]).toEqual({
         updateSheetProperties: {
-          properties: { sheetId: 42, gridProperties: { columnCount: 3 } },
-          fields: 'gridProperties.columnCount',
+          properties: { sheetId: 42, gridProperties: { rowCount: 1, columnCount: 3 } },
+          fields: 'gridProperties.rowCount,gridProperties.columnCount',
         },
       });
     });
