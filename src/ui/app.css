@@ -218,6 +218,31 @@ main {
   inset: 0;
 }
 
+/* ── Income chart ────────────────────────────────── */
+
+.income-chart-section {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 0;
+}
+
+.income-chart__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.income-chart__picker {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.chart-wrap--bar {
+  position: relative;
+  height: 260px;
+}
+
 /* ── Asset breakdown ─────────────────────────────── */
 
 .level-picker {
