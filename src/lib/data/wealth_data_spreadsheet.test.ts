@@ -44,7 +44,6 @@ function makeMockSpreadsheet() {
       return undefined;
     }),
     getSheets: vi.fn().mockReturnValue([dataSheet, assetsSheet, incomeSheet, incomeSourcesSheet]),
-    clearSheets: vi.fn().mockResolvedValue(undefined),
     addSheets: vi.fn().mockResolvedValue([]),
   };
   return { spreadsheet, dataSheet, assetsSheet, incomeSheet, incomeSourcesSheet };
@@ -179,12 +178,11 @@ describe('WealthDataSpreadsheet', () => {
       expect(dates).toEqual([...dates].sort((a, b) => a - b));
     });
 
-    it('clears wealth sheets and writes assets and data on persist', async () => {
+    it('writes assets and data on persist', async () => {
       const wds = await WealthDataSpreadsheet.getOrCreate('token');
       wds.addBalanceSheet(makeBalanceSheet(JAN_2024));
 
-      await vi.waitFor(() => expect(mocks.spreadsheet.clearSheets).toHaveBeenCalled());
-      expect(mocks.assetsSheet.write).toHaveBeenCalled();
+      await vi.waitFor(() => expect(mocks.assetsSheet.write).toHaveBeenCalled());
       expect(mocks.dataSheet.write).toHaveBeenCalled();
     });
 

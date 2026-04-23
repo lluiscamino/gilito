@@ -115,18 +115,6 @@ describe('SpreadsheetsApi', () => {
     });
   });
 
-  describe('batchClearValues', () => {
-    it('posts to the values:batchClear endpoint with the given ranges', async () => {
-      vi.mocked(postJson).mockResolvedValue({});
-      await api.batchClearValues(['Sheet1', 'Sheet2']);
-      expect(postJson).toHaveBeenCalledWith(
-        `${API}/sid/values:batchClear`,
-        { ranges: ['Sheet1', 'Sheet2'] },
-        { bearerToken: 'my-token' },
-      );
-    });
-  });
-
   describe('readValues', () => {
     it('fetches from the correct URL with UNFORMATTED_VALUE rendering', async () => {
       vi.mocked(getJson).mockResolvedValue({ values: [] });

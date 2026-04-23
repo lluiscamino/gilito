@@ -26,10 +26,6 @@ export class Spreadsheet {
     return added;
   }
 
-  async clearSheets(sheets: Sheet[]): Promise<void> {
-    await this.api.batchClearValues(sheets.map((s) => s.title));
-  }
-
   static async getSpreadsheet(token: string, name: string): Promise<Spreadsheet | null> {
     const id = await new DriveApi(token).findSpreadsheetId(name);
     if (!id) return null;

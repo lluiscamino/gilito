@@ -122,14 +122,5 @@ describe('Spreadsheet', () => {
         expect(spreadsheet.getSheet('NewSheet')?.title).toBe('NewSheet');
       });
     });
-
-    describe('clearSheets', () => {
-      it('calls api.batchClearValues with the titles of the provided sheets', async () => {
-        const data = spreadsheet.getSheet('Data')!;
-        const assets = spreadsheet.getSheet('Assets')!;
-        await spreadsheet.clearSheets([data, assets]);
-        expect(mockApiInstance.batchClearValues).toHaveBeenCalledWith(['Data', 'Assets']);
-      });
-    });
   });
 });

@@ -135,7 +135,6 @@ export class WealthDataSpreadsheet {
     const assets = collectAssets(this.balanceSheets);
     const assetIds = assets.map((a) => a.id);
 
-    await this.spreadsheet.clearSheets([dataSheet, assetsSheet]);
     await dataSheet.write(this.balanceSheetsMarshaller.toSheetRows(this.balanceSheets, assetIds));
     await assetsSheet.write(this.assetsMarshaller.toSheetRows(assets));
   }
@@ -155,7 +154,6 @@ export class WealthDataSpreadsheet {
     const sources = collectSources(this.incomeSheets);
     const sourceIds = sources.map((s) => s.id);
 
-    await this.spreadsheet.clearSheets([incomeSheet, incomeSourcesSheet]);
     await incomeSheet.write(this.incomeSheetsMarshaller.toSheetRows(this.incomeSheets, sourceIds));
     await incomeSourcesSheet.write(this.incomeSourcesMarshaller.toSheetRows(sources));
   }

@@ -50,14 +50,6 @@ export class SpreadsheetsApi {
     return data.replies.map((r) => r.addSheet?.properties).filter((p): p is SheetInfo => p != null);
   }
 
-  async batchClearValues(ranges: string[]): Promise<void> {
-    await postJson(
-      `${SHEETS_API}/${this.spreadsheetId}/values:batchClear`,
-      { ranges },
-      { bearerToken: this.token },
-    );
-  }
-
   async readValues(range: string): Promise<SheetRow[] | null> {
     const data = await getJson<{ values?: (string | number)[][]; error?: unknown }>(
       `${SHEETS_API}/${this.spreadsheetId}/values/${range}?valueRenderOption=UNFORMATTED_VALUE`,
@@ -68,6 +60,7 @@ export class SpreadsheetsApi {
   }
 
   async updateCells(sheetId: number, rows: SheetRow[]): Promise<void> {
+    const rowCount = Math.max(rows.length, 1);
     const colCount = rows.reduce((max, row) => Math.max(max, row.length), 1);
     await postJson(
       `${SHEETS_API}/${this.spreadsheetId}:batchUpdate`,
@@ -75,8 +68,8 @@ export class SpreadsheetsApi {
         requests: [
           {
             updateSheetProperties: {
-              properties: { sheetId, gridProperties: { columnCount: colCount } },
-              fields: 'gridProperties.columnCount',
+              properties: { sheetId, gridProperties: { rowCount, columnCount: colCount } },
+              fields: 'gridProperties.rowCount,gridProperties.columnCount',
             },
           },
           {
