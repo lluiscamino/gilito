@@ -16,21 +16,11 @@ import { formatMoney, formatMoneyCompact } from '../formatting.ts';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-const PALETTE = [
-  '#007AFF',
-  '#34C759',
-  '#FF9500',
-  '#AF52DE',
-  '#FF3B30',
-  '#5AC8FA',
-  '#FF2D55',
-  '#FFCC00',
-];
-
 type Period = 'month' | 'year';
 
 export class IncomeChart {
   private readonly ctrl: IncomeChartController;
+  private period: Period = 'month';
 
   constructor(sheets: IncomeSheet[], converter: CurrencyConverter) {
     this.ctrl = new IncomeChartController(sheets, converter);
@@ -46,17 +36,16 @@ export class IncomeChart {
     chartWrap.className = 'chart-wrap--bar';
     chartWrap.append(canvas);
 
-    let period: Period = 'month';
-    const chart = buildChart(canvas, this.ctrl.getMonthlyData());
+    const chart = this.buildChart(canvas);
 
     const { header, monthBtn, yearBtn } = buildHeader();
 
     const onPeriodChange = (selected: Period) => {
-      period = selected;
-      monthBtn.classList.toggle('level-picker__btn--active', period === 'month');
-      yearBtn.classList.toggle('level-picker__btn--active', period === 'year');
-      const data = period === 'month' ? this.ctrl.getMonthlyData() : this.ctrl.getYearlyData();
-      chart.data.labels = data.labels;
+      this.period = selected;
+      const data = this.getData();
+      monthBtn.classList.toggle('level-picker__btn--active', this.period === 'month');
+      yearBtn.classList.toggle('level-picker__btn--active', this.period === 'year');
+      chart.data.labels = data.entries.map((e) => e.bottomLabel);
       chart.data.datasets = toChartDatasets(data);
       chart.update();
     };
@@ -66,6 +55,82 @@ export class IncomeChart {
 
     section.append(header, chartWrap);
     return section;
+  }
+
+  private buildChart(canvas: HTMLCanvasElement): Chart {
+    const data = this.getData();
+    return new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: data.entries.map((e) => e.bottomLabel),
+        datasets: toChartDatasets(data),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              borderRadius: 3,
+              useBorderRadius: true,
+              padding: 16,
+              font: { size: 11 },
+              color: '#6E6E73',
+            },
+          },
+          tooltip: {
+            backgroundColor: '#fff',
+            titleColor: '#1D1D1F',
+            bodyColor: '#6E6E73',
+            borderColor: 'rgba(0,0,0,0.08)',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.raw as number;
+                return `  ${ctx.dataset.label}: ${formatMoney(new Money(Math.round(v * 100), Currencies.EUR))}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            border: { display: false },
+            ticks: { maxRotation: 0 },
+          },
+          xTop: {
+            type: 'category',
+            position: 'top',
+            grid: { display: false },
+            border: { display: false },
+            ticks: {
+              color: '#1D1D1F',
+              font: { size: 11, weight: 600 },
+              callback: (_, i) => this.getData().entries[i]?.topLabel,
+            },
+          },
+          y: {
+            stacked: true,
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            border: { display: false },
+            ticks: {
+              callback: (v) =>
+                formatMoneyCompact(new Money(Math.round((v as number) * 100), Currencies.EUR)),
+            },
+          },
+        },
+      },
+    });
+  }
+
+  private getData(): IncomeChartData {
+    return this.period === 'month' ? this.ctrl.getMonthlyData() : this.ctrl.getYearlyData();
   }
 }
 
@@ -100,68 +165,11 @@ function buildPeriodButton(label: string, active: boolean): HTMLButtonElement {
   return btn;
 }
 
-function buildChart(canvas: HTMLCanvasElement, initialData: IncomeChartData): Chart {
-  return new Chart(canvas, {
-    type: 'bar',
-    data: { labels: initialData.labels, datasets: toChartDatasets(initialData) },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'bottom',
-          labels: {
-            boxWidth: 10,
-            boxHeight: 10,
-            borderRadius: 3,
-            useBorderRadius: true,
-            padding: 16,
-            font: { size: 11 },
-            color: '#6E6E73',
-          },
-        },
-        tooltip: {
-          backgroundColor: '#fff',
-          titleColor: '#1D1D1F',
-          bodyColor: '#6E6E73',
-          borderColor: 'rgba(0,0,0,0.08)',
-          borderWidth: 1,
-          padding: 10,
-          callbacks: {
-            label: (ctx) => {
-              const v = ctx.raw as number;
-              return `  ${ctx.dataset.label}: ${formatMoney(new Money(Math.round(v * 100), Currencies.EUR))}`;
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          stacked: true,
-          grid: { display: false },
-          border: { display: false },
-          ticks: { maxRotation: 0 },
-        },
-        y: {
-          stacked: true,
-          grid: { color: 'rgba(0, 0, 0, 0.04)' },
-          border: { display: false },
-          ticks: {
-            callback: (v) =>
-              formatMoneyCompact(new Money(Math.round((v as number) * 100), Currencies.EUR)),
-          },
-        },
-      },
-    },
-  });
-}
-
 function toChartDatasets(data: IncomeChartData) {
-  return data.datasets.map(({ source, values }, i) => ({
-    label: source.name,
-    data: values,
-    backgroundColor: PALETTE[i % PALETTE.length],
+  return data.sources().map((source) => ({
+    label: source.label,
+    data: data.entries.map((entry) => entry.values.get(source) ?? 0),
+    backgroundColor: source.color,
     borderRadius: 3,
     borderSkipped: false,
   }));
