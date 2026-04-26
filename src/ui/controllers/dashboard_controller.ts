@@ -66,8 +66,7 @@ export class DashboardController {
         })
         .sort((a, b) => b.amount.amount - a.amount.amount);
 
-    const assetEntries: readonly AllocationEntry[] = [...this.latest.snapshots]
-      .sort((a, b) => b.value.amount - a.value.amount)
+    const assetEntries: readonly AllocationEntry[] = this.latest.snapshots
       .map(({ asset, value }) => {
         const amount = this.converter.toDisplayCurrency(value);
         return {
@@ -77,7 +76,8 @@ export class DashboardController {
           amount,
           percentage: total.amount > 0 ? (amount.amount / total.amount) * 100 : 0,
         };
-      });
+      })
+      .sort((a, b) => b.amount.amount - a.amount.amount);
 
     return {
       [AllocationLevel.Overview.id]: toEntries(AssetCategoryLevel.Overview),
