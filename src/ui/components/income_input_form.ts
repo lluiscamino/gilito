@@ -1,7 +1,8 @@
+import type { Money } from 'ts-money';
 import { Currency, SUPPORTED_CURRENCIES } from '../../lib/fx/currency.ts';
 import type { IncomeInputController } from '../controllers/income_input_controller.ts';
 import type { NewIncomeSourceValue } from '../controllers/new_income_source_value.ts';
-import { parseDecimalInput } from '../formatting.ts';
+import { getCurrencySymbol, parseDecimalInput, toDecimal } from '../formatting.ts';
 import { EntryInputRow } from './entry_input_row.ts';
 import { MonthPickerRow } from './month_picker_row.ts';
 import { NewEntryRow } from './new_entry_row.ts';
@@ -43,9 +44,17 @@ export class IncomeInputForm {
       row.nameEl.focus();
     });
 
+    const taxPaidInput = makeTaxPaidInput(this.controller.getLastTaxPaid());
+
     const card = document.createElement('section');
     card.className = 'card';
-    card.append(monthPicker.render(), existingEntryList.render(), newList, addSourceBtn);
+    card.append(
+      monthPicker.render(),
+      existingEntryList.render(),
+      newList,
+      addSourceBtn,
+      taxPaidInput,
+    );
 
     return new InputFormLayout({
       title: 'Log Income',
@@ -64,11 +73,38 @@ export class IncomeInputForm {
             currency: currencyEl.value as Currency,
           }));
 
-        this.controller.saveIncomeSheet(date, values, newSources);
+        const taxPaid = parseDecimalInput(taxPaidInput.querySelector('input')!.value, 0);
+        this.controller.saveIncomeSheet(date, values, newSources, taxPaid);
         this.onSave();
       },
     }).render();
   }
+}
+
+function makeTaxPaidInput(lastTaxPaid: Money): HTMLDivElement {
+  const wrap = document.createElement('div');
+  wrap.className = 'asset-input-row';
+
+  const label = document.createElement('div');
+  label.className = 'asset-input-row__meta';
+  label.innerHTML = `<span class="asset-input-row__name">Tax Paid</span>`;
+
+  const field = document.createElement('div');
+  field.className = 'asset-input-row__field';
+  field.innerHTML = `<span class="asset-input-row__currency">${getCurrencySymbol(lastTaxPaid.currency)}</span>`;
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.min = '0';
+  input.step = 'any';
+  input.inputMode = 'decimal';
+  input.className = 'asset-input-row__input';
+  input.setAttribute('aria-label', 'Tax paid');
+  input.value = toDecimal(lastTaxPaid).toFixed(2);
+  field.append(input);
+
+  wrap.append(label, field);
+  return wrap;
 }
 
 function makeCurrencySelect(): HTMLSelectElement {

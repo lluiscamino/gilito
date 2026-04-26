@@ -1,5 +1,6 @@
 import { Money } from 'ts-money';
 import type { IncomeSource } from '../../lib/income/income_source.ts';
+
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { EntryInput } from './entry_input.ts';
 import type { NewIncomeSourceValue } from './new_income_source_value.ts';
@@ -21,10 +22,15 @@ export class IncomeInputController {
     }));
   }
 
+  getLastTaxPaid(): Money {
+    return this.repo.getLatestIncomeSheet()?.taxPaid ?? new Money(0, 'EUR');
+  }
+
   saveIncomeSheet(
     date: Date,
     values: ReadonlyMap<string, number>,
     newSources: readonly NewIncomeSourceValue[],
+    taxPaid: number,
   ): void {
     const latest = this.repo.getLatestIncomeSheet();
 
@@ -48,6 +54,10 @@ export class IncomeInputController {
       });
     }
 
-    this.repo.addIncomeSheet({ date, entries });
+    this.repo.addIncomeSheet({
+      date,
+      entries,
+      taxPaid: new Money(Math.round(taxPaid * 100), 'EUR'),
+    });
   }
 }

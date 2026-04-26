@@ -74,6 +74,7 @@ function makeIncomeSheet(date: Date, amountCents = 500000) {
   return {
     date,
     entries: [{ source: salarySource, amount: new Money(amountCents, Currencies.EUR) }],
+    taxPaid: new Money(0, Currencies.EUR),
   };
 }
 

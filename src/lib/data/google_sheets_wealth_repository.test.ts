@@ -41,6 +41,7 @@ function makeIncomeSheet(year: number) {
   return {
     date: new Date(Date.UTC(year, 0, 1)),
     entries: [{ source: salarySource, amount: new Money(500000, Currencies.EUR) }],
+    taxPaid: new Money(0, Currencies.EUR),
   };
 }
 

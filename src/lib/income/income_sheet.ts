@@ -1,9 +1,11 @@
+import type { Money } from 'ts-money';
 import type { IncomeEntry } from './income_entry.ts';
 import type { IncomeSource } from './income_source.ts';
 
 export interface IncomeSheet {
   readonly date: Date;
   readonly entries: readonly IncomeEntry[];
+  readonly taxPaid: Money;
 }
 
 export function collectSources(sheets: IncomeSheet[]): IncomeSource[] {

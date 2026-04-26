@@ -4,11 +4,15 @@ import type { IncomeSource } from '../income/income_source.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
 import type { SheetRow } from '../google/sheets/sheet_row.ts';
 
+const TAX_PAID_HEADER = 'TaxPaid';
+
 export class IncomeSheetsMarshaller {
   parse(rows: SheetRow[], sources: IncomeSource[]): IncomeSheet[] {
     if (rows.length < 2) return [];
     const [header, ...dataRows] = rows;
-    const sourceIds = header.map((c) => c.value as string).slice(1);
+    const allHeaders = header.map((c) => c.value as string).slice(1);
+    const taxPaidIndex = allHeaders.indexOf(TAX_PAID_HEADER);
+    const sourceIds = allHeaders.filter((id) => id !== TAX_PAID_HEADER);
 
     return dataRows.map((row) => {
       const [dateSerial, ...values] = row.map((c) => c.value as number);
@@ -20,12 +24,14 @@ export class IncomeSheetsMarshaller {
           return { source, amount: new Money(cents, source.currency) };
         })
         .filter((e): e is NonNullable<typeof e> => e !== null);
-      return { date: fromSheetsDate(dateSerial), entries };
+      const taxPaidCents = taxPaidIndex >= 0 ? Math.round((values[taxPaidIndex] ?? 0) * 100) : 0;
+      const taxPaid = new Money(taxPaidCents > 0 ? taxPaidCents : 0, 'EUR');
+      return { date: fromSheetsDate(dateSerial), entries, taxPaid };
     });
   }
 
   toSheetRows(sheets: IncomeSheet[], sourceIds: string[]): SheetRow[] {
-    const header: SheetRow = ['Date', ...sourceIds].map((s) => ({ value: s }));
+    const header: SheetRow = ['Date', ...sourceIds, TAX_PAID_HEADER].map((s) => ({ value: s }));
     const dataRows: SheetRow[] = sheets.map((sheet) => [
       {
         value: toSheetsDate(sheet.date),
@@ -39,6 +45,10 @@ export class IncomeSheetsMarshaller {
           format: { numberFormat: { type: 'CURRENCY', pattern: currencyPattern(currency) } },
         };
       }),
+      {
+        value: toDecimal(sheet.taxPaid),
+        format: { numberFormat: { type: 'CURRENCY', pattern: currencyPattern('EUR') } },
+      },
     ]);
     return [header, ...dataRows];
   }

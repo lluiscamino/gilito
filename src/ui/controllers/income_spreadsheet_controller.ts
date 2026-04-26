@@ -5,6 +5,8 @@ import { sumInDisplayCurrency } from '../../lib/fx/money.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
+export const TAX_PAID_COLUMN_ID = '__tax_paid__';
+
 export class IncomeSpreadsheetController {
   private readonly repo: WealthRepository;
   private readonly converter: CurrencyConverter;
@@ -23,12 +25,23 @@ export class IncomeSpreadsheetController {
         }
       }
     }
-    return [...seen.entries()].map(([id, { name, currency }]) => ({ id, name, currency }));
+    const taxPaidColumn: TableColumn = {
+      id: TAX_PAID_COLUMN_ID,
+      name: 'Tax Paid',
+      currency: 'EUR',
+    };
+    const sourceColumns = [...seen.entries()].map(([id, { name, currency }]) => ({
+      id,
+      name,
+      currency,
+    }));
+    return [taxPaidColumn, ...sourceColumns];
   }
 
   getRows(): TableRow[] {
     return this.repo.getAllIncomeSheets().map((sheet) => {
       const values = new Map(sheet.entries.map((e) => [e.source.id, e.amount]));
+      values.set(TAX_PAID_COLUMN_ID, sheet.taxPaid);
       const total = sumInDisplayCurrency(
         sheet.entries.map((e) => e.amount),
         this.converter,
@@ -41,10 +54,15 @@ export class IncomeSpreadsheetController {
     const sheets = this.repo.getAllIncomeSheets();
     const sheet = sheets[dateIndex];
     if (!sheet) return;
+    if (id === TAX_PAID_COLUMN_ID) {
+      const taxPaid = new Money(Math.round(amount * 100), 'EUR');
+      this.repo.updateIncomeSheet({ ...sheet, taxPaid });
+      return;
+    }
     const entries = sheet.entries.map((e) => {
       if (e.source.id !== id) return e;
       return { source: e.source, amount: new Money(Math.round(amount * 100), e.source.currency) };
     });
-    this.repo.updateIncomeSheet({ date: sheet.date, entries });
+    this.repo.updateIncomeSheet({ ...sheet, entries });
   }
 }
