@@ -7,12 +7,12 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Money, Currencies } from 'ts-money';
+import { Currencies } from 'ts-money';
 import type { IncomeSheet } from '../../lib/income/income_sheet.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import type { IncomeChartData } from '../controllers/income_chart_controller.ts';
 import { IncomeChartController } from '../controllers/income_chart_controller.ts';
-import { formatMoney, formatMoneyCompact } from '../formatting.ts';
+import { formatMoney, formatMoneyCompact, fromDecimal } from '../formatting.ts';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -92,7 +92,7 @@ export class IncomeChart {
             callbacks: {
               label: (ctx) => {
                 const v = ctx.raw as number;
-                return `  ${ctx.dataset.label}: ${formatMoney(new Money(Math.round(v * 100), Currencies.EUR))}`;
+                return `  ${ctx.dataset.label}: ${formatMoney(fromDecimal(v, Currencies.EUR))}`;
               },
             },
           },
@@ -120,8 +120,7 @@ export class IncomeChart {
             grid: { color: 'rgba(0, 0, 0, 0.04)' },
             border: { display: false },
             ticks: {
-              callback: (v) =>
-                formatMoneyCompact(new Money(Math.round((v as number) * 100), Currencies.EUR)),
+              callback: (v) => formatMoneyCompact(fromDecimal(v as number, Currencies.EUR)),
             },
           },
         },

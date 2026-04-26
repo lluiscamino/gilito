@@ -10,6 +10,10 @@ export function toDecimal(money: Money): number {
   return money.amount / 100;
 }
 
+export function fromDecimal(amount: number, currency: Currency): Money {
+  return new Money(Math.round(amount * 100), currency);
+}
+
 export function sumInDisplayCurrency(
   moneys: readonly Money[],
   converter: CurrencyConverter,

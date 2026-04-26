@@ -1,4 +1,4 @@
-import { Money } from 'ts-money';
+import { fromDecimal } from '../../lib/fx/money.ts';
 import type { IncomeSource } from '../../lib/income/income_source.ts';
 
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
@@ -37,8 +37,9 @@ export class IncomeInputController {
     const entries = latest
       ? latest.entries.map((e) => {
           const amount = values.get(e.source.id);
-          const cents = amount !== undefined ? Math.round(amount * 100) : e.amount.amount;
-          return { source: e.source, amount: new Money(cents, e.source.currency) };
+          const entryAmount =
+            amount !== undefined ? fromDecimal(amount, e.source.currency) : e.amount;
+          return { source: e.source, amount: entryAmount };
         })
       : [];
 
@@ -50,14 +51,14 @@ export class IncomeInputController {
       };
       entries.push({
         source,
-        amount: new Money(Math.round(newSource.amount * 100), newSource.currency),
+        amount: fromDecimal(newSource.amount, newSource.currency),
       });
     }
 
     this.repo.addIncomeSheet({
       date,
       entries,
-      taxPaid: new Money(Math.round(taxPaid * 100), 'EUR'),
+      taxPaid: fromDecimal(taxPaid, 'EUR'),
     });
   }
 }

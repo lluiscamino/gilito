@@ -1,5 +1,4 @@
-import { Money } from 'ts-money';
-import { toDecimal } from '../fx/money.ts';
+import { toDecimal, fromDecimal } from '../fx/money.ts';
 import type { IncomeSource } from '../income/income_source.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
 import type { SheetRow } from '../google/sheets/sheet_row.ts';
@@ -19,13 +18,12 @@ export class IncomeSheetsMarshaller {
       const entries = sourceIds
         .map((id, i) => {
           const source = sources.find((s) => s.id === id);
-          const cents = Math.round((values[i] ?? 0) * 100);
-          if (!source || cents === 0) return null;
-          return { source, amount: new Money(cents, source.currency) };
+          const amount = fromDecimal(values[i] ?? 0, source?.currency ?? 'EUR');
+          if (!source || amount.amount === 0) return null;
+          return { source, amount };
         })
         .filter((e): e is NonNullable<typeof e> => e !== null);
-      const taxPaidCents = taxPaidIndex >= 0 ? Math.round((values[taxPaidIndex] ?? 0) * 100) : 0;
-      const taxPaid = new Money(taxPaidCents > 0 ? taxPaidCents : 0, 'EUR');
+      const taxPaid = fromDecimal(taxPaidIndex >= 0 ? (values[taxPaidIndex] ?? 0) : 0, 'EUR');
       return { date: fromSheetsDate(dateSerial), entries, taxPaid };
     });
   }

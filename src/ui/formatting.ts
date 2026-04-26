@@ -1,7 +1,7 @@
 import type { Money } from 'ts-money';
-import { toDecimal } from '../lib/fx/money.ts';
+import { toDecimal, fromDecimal } from '../lib/fx/money.ts';
 
-export { toDecimal };
+export { toDecimal, fromDecimal };
 
 export function formatMoney(money: Money): string {
   return new Intl.NumberFormat('en', { style: 'currency', currency: money.currency }).format(

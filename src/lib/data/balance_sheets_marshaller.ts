@@ -1,5 +1,4 @@
-import { Money } from 'ts-money';
-import { toDecimal } from '../fx/money.ts';
+import { toDecimal, fromDecimal } from '../fx/money.ts';
 import type { Asset } from '../assets/asset.ts';
 import type { BalanceSheet } from '../assets/balance_sheet.ts';
 import type { SheetRow } from '../google/sheets/sheet_row.ts';
@@ -15,9 +14,9 @@ export class BalanceSheetsMarshaller {
       const snapshots = assetIds
         .map((id, i) => {
           const asset = assets.find((a) => a.id === id);
-          const cents = Math.round((values[i] ?? 0) * 100);
-          if (!asset || cents === 0) return null;
-          return { asset, value: new Money(cents, asset.currency) };
+          const value = fromDecimal(values[i] ?? 0, asset?.currency ?? 'EUR');
+          if (!asset || value.amount === 0) return null;
+          return { asset, value };
         })
         .filter((s): s is NonNullable<typeof s> => s !== null);
       return { date: fromSheetsDate(dateSerial), snapshots };

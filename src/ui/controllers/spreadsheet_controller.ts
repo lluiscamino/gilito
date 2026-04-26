@@ -1,7 +1,6 @@
-import { Money } from 'ts-money';
 import type { Currency } from '../../lib/fx/currency.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
-import { sumInDisplayCurrency } from '../../lib/fx/money.ts';
+import { sumInDisplayCurrency, fromDecimal } from '../../lib/fx/money.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
@@ -43,7 +42,7 @@ export class SpreadsheetController {
     if (!sheet) return;
     const snapshots = sheet.snapshots.map((s) => {
       if (s.asset.id !== id) return s;
-      return { asset: s.asset, value: new Money(Math.round(amount * 100), s.asset.currency) };
+      return { asset: s.asset, value: fromDecimal(amount, s.asset.currency) };
     });
     this.repo.updateBalanceSheet({ date: sheet.date, snapshots });
   }

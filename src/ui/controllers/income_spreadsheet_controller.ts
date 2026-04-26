@@ -1,7 +1,6 @@
-import { Money } from 'ts-money';
 import type { Currency } from '../../lib/fx/currency.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
-import { sumInDisplayCurrency } from '../../lib/fx/money.ts';
+import { sumInDisplayCurrency, fromDecimal } from '../../lib/fx/money.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
@@ -55,13 +54,13 @@ export class IncomeSpreadsheetController {
     const sheet = sheets[dateIndex];
     if (!sheet) return;
     if (id === TAX_PAID_COLUMN_ID) {
-      const taxPaid = new Money(Math.round(amount * 100), 'EUR');
+      const taxPaid = fromDecimal(amount, 'EUR');
       this.repo.updateIncomeSheet({ ...sheet, taxPaid });
       return;
     }
     const entries = sheet.entries.map((e) => {
       if (e.source.id !== id) return e;
-      return { source: e.source, amount: new Money(Math.round(amount * 100), e.source.currency) };
+      return { source: e.source, amount: fromDecimal(amount, e.source.currency) };
     });
     this.repo.updateIncomeSheet({ ...sheet, entries });
   }

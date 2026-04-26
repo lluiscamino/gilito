@@ -1,4 +1,4 @@
-import { Money } from 'ts-money';
+import { fromDecimal } from '../../lib/fx/money.ts';
 import {
   findCategoryById,
   isValidCategoryId,
@@ -41,8 +41,8 @@ export class SnapshotInputController {
     const snapshots = latest
       ? latest.snapshots.map((s) => {
           const amount = values.get(s.asset.id);
-          const cents = amount !== undefined ? Math.round(amount * 100) : s.value.amount;
-          return { asset: s.asset, value: new Money(cents, s.asset.currency) };
+          const value = amount !== undefined ? fromDecimal(amount, s.asset.currency) : s.value;
+          return { asset: s.asset, value };
         })
       : [];
 
@@ -57,7 +57,7 @@ export class SnapshotInputController {
       };
       snapshots.push({
         asset,
-        value: new Money(Math.round(newAsset.amount * 100), newAsset.currency),
+        value: fromDecimal(newAsset.amount, newAsset.currency),
       });
     }
 

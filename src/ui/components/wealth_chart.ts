@@ -9,8 +9,8 @@ import {
   Tooltip,
 } from 'chart.js';
 import type { WealthSnapshot } from '../controllers/wealth_snapshot.ts';
-import { Money, Currencies } from 'ts-money';
-import { formatMoney, formatMoneyCompact, toDecimal } from '../formatting.ts';
+import { Currencies } from 'ts-money';
+import { formatMoney, formatMoneyCompact, toDecimal, fromDecimal } from '../formatting.ts';
 
 Chart.register(
   LineController,
@@ -84,8 +84,7 @@ export class WealthChart {
             borderWidth: 1,
             padding: 10,
             callbacks: {
-              label: (ctx) =>
-                `  ${formatMoney(new Money(Math.round((ctx.raw as number) * 100), Currencies.EUR))}`,
+              label: (ctx) => `  ${formatMoney(fromDecimal(ctx.raw as number, Currencies.EUR))}`,
             },
           },
         },
@@ -99,8 +98,7 @@ export class WealthChart {
             grid: { color: 'rgba(0, 0, 0, 0.04)' },
             border: { display: false },
             ticks: {
-              callback: (v) =>
-                formatMoneyCompact(new Money(Math.round((v as number) * 100), Currencies.EUR)),
+              callback: (v) => formatMoneyCompact(fromDecimal(v as number, Currencies.EUR)),
             },
           },
         },
