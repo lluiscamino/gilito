@@ -5,7 +5,7 @@ import { sumInDisplayCurrency } from '../../lib/fx/money.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
-export const TAX_PAID_COLUMN_ID = '__tax_paid__';
+const TAX_PAID_COLUMN_ID = '__tax_paid__';
 
 export class IncomeSpreadsheetController {
   private readonly repo: WealthRepository;

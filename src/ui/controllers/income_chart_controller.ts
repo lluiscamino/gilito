@@ -4,12 +4,12 @@ import { toDecimal } from '../../lib/fx/money.ts';
 import { formatMoneyCompact } from '../formatting.ts';
 import { Money, Currencies } from 'ts-money';
 
-export interface ValueSource {
+interface ValueSource {
   label: string;
   color: string;
 }
 
-export interface Entry {
+interface Entry {
   topLabel?: string;
   bottomLabel: string;
   values: Map<ValueSource, number>;
