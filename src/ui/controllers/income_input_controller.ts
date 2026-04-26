@@ -1,3 +1,4 @@
+import { Money } from 'ts-money';
 import { fromDecimal } from '../../lib/fx/money.ts';
 import type { IncomeSource } from '../../lib/income/income_source.ts';
 

@@ -2,7 +2,7 @@ import type { IncomeSheet } from '../../lib/income/income_sheet.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { toDecimal, fromDecimal } from '../../lib/fx/money.ts';
 import { formatMoneyCompact } from '../formatting.ts';
-import { Currencies } from 'ts-money';
+import { Currency } from '../../lib/fx/currency.ts';
 
 interface ValueSource {
   label: string;
@@ -114,7 +114,7 @@ export class IncomeChartController {
 
   private computeNetLabel(values: Map<ValueSource, number>): string {
     const net = [...values.values()].reduce((sum, v) => sum + v, 0);
-    return formatMoneyCompact(fromDecimal(net, Currencies.EUR));
+    return formatMoneyCompact(fromDecimal(net, Currency.EUR));
   }
 
   private getOrCreateValueSource(

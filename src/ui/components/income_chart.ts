@@ -7,7 +7,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Currencies } from 'ts-money';
+import { Currency } from '../../lib/fx/currency.ts';
 import type { IncomeSheet } from '../../lib/income/income_sheet.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import type { IncomeChartData } from '../controllers/income_chart_controller.ts';
@@ -92,7 +92,7 @@ export class IncomeChart {
             callbacks: {
               label: (ctx) => {
                 const v = ctx.raw as number;
-                return `  ${ctx.dataset.label}: ${formatMoney(fromDecimal(v, Currencies.EUR))}`;
+                return `  ${ctx.dataset.label}: ${formatMoney(fromDecimal(v, Currency.EUR))}`;
               },
             },
           },
@@ -120,7 +120,7 @@ export class IncomeChart {
             grid: { color: 'rgba(0, 0, 0, 0.04)' },
             border: { display: false },
             ticks: {
-              callback: (v) => formatMoneyCompact(fromDecimal(v as number, Currencies.EUR)),
+              callback: (v) => formatMoneyCompact(fromDecimal(v as number, Currency.EUR)),
             },
           },
         },
