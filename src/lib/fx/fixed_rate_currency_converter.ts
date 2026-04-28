@@ -20,8 +20,8 @@ export class FixedRateCurrencyConverter implements CurrencyConverter {
   // Update rates here as needed (currency → EUR, e.g. 1 USD = 0.92 EUR)
   static create(): FixedRateCurrencyConverter {
     return new FixedRateCurrencyConverter({
-      [Currency.USD]: 0.92,
-      [Currency.GBP]: 1.17,
+      [Currency.USD]: 0.85,
+      [Currency.GBP]: 1.15,
     });
   }
 }
