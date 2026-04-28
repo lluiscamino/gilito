@@ -1,6 +1,6 @@
 import Navigo from 'navigo';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
-import { FixedRateCurrencyConverter } from '../../lib/fx/fixed_rate_currency_converter.ts';
+import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { DashboardController } from '../controllers/dashboard_controller.ts';
 import { IncomeInputController } from '../controllers/income_input_controller.ts';
 import { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
@@ -15,14 +15,16 @@ import { SnapshotInputForm } from './snapshot_input_form.ts';
 
 export class App {
   private readonly repo: WealthRepository;
+  private readonly converter: CurrencyConverter;
 
-  constructor(repo: WealthRepository) {
+  constructor(repo: WealthRepository, converter: CurrencyConverter) {
     this.repo = repo;
+    this.converter = converter;
   }
 
   render(root: HTMLElement): void {
     const repo = this.repo;
-    const converter = FixedRateCurrencyConverter.create();
+    const converter = this.converter;
     const router = new Navigo(import.meta.env.BASE_URL);
 
     const header = new Header().render();
