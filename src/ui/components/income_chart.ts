@@ -112,7 +112,7 @@ export class IncomeChart {
             ticks: {
               color: '#1D1D1F',
               font: { size: 11, weight: 600 },
-              callback: (_, i) => this.getData().entries[i]?.topLabel,
+              callback: (_, i) => this.getData().entries[i]?.topLabels,
             },
           },
           y: {

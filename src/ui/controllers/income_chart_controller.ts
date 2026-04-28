@@ -10,7 +10,7 @@ interface ValueSource {
 }
 
 interface Entry {
-  topLabel?: string;
+  topLabels?: string[];
   bottomLabel: string;
   values: Map<ValueSource, number>;
 }
@@ -70,8 +70,8 @@ export class IncomeChartController {
     const sourceMap = new Map<string, ValueSource>();
     const entries = this.groupByBucket(bucket).map(({ label, sheets }) => {
       const values = this.aggregateValues(sheets, sourceMap);
-      const topLabel = showTopLabel ? this.computeNetLabel(values) : undefined;
-      return { topLabel, bottomLabel: label, values };
+      const topLabels = showTopLabel ? computeTopLabels(values) : undefined;
+      return { topLabels, bottomLabel: label, values };
     });
     return new IncomeChartData(entries);
   }
@@ -95,11 +95,7 @@ export class IncomeChartController {
     const values = new Map<ValueSource, number>();
     for (const sheet of sheets) {
       for (const entry of sheet.entries) {
-        const valueSource = this.getOrCreateValueSource(
-          sourceMap,
-          entry.source.id,
-          entry.source.name,
-        );
+        const valueSource = getOrCreateValueSource(sourceMap, entry.source.id, entry.source.name);
         values.set(
           valueSource,
           (values.get(valueSource) ?? 0) +
@@ -111,22 +107,30 @@ export class IncomeChartController {
     values.set(TAX_PAID_SOURCE, -taxPaid);
     return values;
   }
+}
 
-  private computeNetLabel(values: Map<ValueSource, number>): string {
-    const net = [...values.values()].reduce((sum, v) => sum + v, 0);
-    return formatMoneyCompact(fromDecimal(net, Currency.EUR));
+function computeTopLabels(values: Map<ValueSource, number>): string[] {
+  let gross = 0;
+  let net = 0;
+  for (const [source, v] of values) {
+    net += v;
+    if (source !== TAX_PAID_SOURCE) gross += v;
   }
+  return [
+    `${formatMoneyCompact(fromDecimal(gross, Currency.EUR))} gross`,
+    `${formatMoneyCompact(fromDecimal(net, Currency.EUR))} net`,
+  ];
+}
 
-  private getOrCreateValueSource(
-    map: Map<string, ValueSource>,
-    id: string,
-    name: string,
-  ): ValueSource {
-    let valueSource = map.get(id);
-    if (!valueSource) {
-      valueSource = { label: name, color: PALETTE[map.size % PALETTE.length] };
-      map.set(id, valueSource);
-    }
-    return valueSource;
+function getOrCreateValueSource(
+  map: Map<string, ValueSource>,
+  id: string,
+  name: string,
+): ValueSource {
+  let valueSource = map.get(id);
+  if (!valueSource) {
+    valueSource = { label: name, color: PALETTE[map.size % PALETTE.length] };
+    map.set(id, valueSource);
   }
+  return valueSource;
 }
