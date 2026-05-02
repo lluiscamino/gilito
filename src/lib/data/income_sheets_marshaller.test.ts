@@ -27,13 +27,15 @@ describe('IncomeSheetsMarshaller', () => {
       expect(sheets[0].entries[0].amount.amount).toBe(500000);
     });
 
-    it('skips zero-value entries', () => {
+    it('includes zero-value entries', () => {
       const rows: SheetRow[] = [
         [{ value: 'Date' }, { value: 'salary' }, { value: 'freelance' }],
         [{ value: toSerial(JAN_2024) }, { value: 5000 }, { value: 0 }],
       ];
       const sheets = marshaller.parse(rows, [salary, freelance]);
-      expect(sheets[0].entries).toHaveLength(1);
+      expect(sheets[0].entries).toHaveLength(2);
+      expect(sheets[0].entries[1].source.id).toBe('freelance');
+      expect(sheets[0].entries[1].amount.amount).toBe(0);
     });
 
     it('skips columns whose source id is not in the provided sources', () => {
@@ -146,6 +148,27 @@ describe('IncomeSheetsMarshaller', () => {
       expect(parsed[1].entries[1].amount.amount).toBe(120000);
       expect(parsed[0].taxPaid.amount).toBe(150000);
       expect(parsed[1].taxPaid.amount).toBe(200000);
+    });
+
+    it('round-trips zero-value entries through toSheetRows → parse', () => {
+      const sheets = [
+        {
+          date: JAN_2024,
+          entries: [
+            { source: salary, amount: new Money(500000, 'EUR') },
+            { source: freelance, amount: new Money(0, 'EUR') },
+          ],
+          taxPaid: ZERO,
+        },
+      ];
+      const sourceIds = [salary.id, freelance.id];
+      const parsed = marshaller.parse(marshaller.toSheetRows(sheets, sourceIds), [
+        salary,
+        freelance,
+      ]);
+      expect(parsed[0].entries).toHaveLength(2);
+      expect(parsed[0].entries[0].amount.amount).toBe(500000);
+      expect(parsed[0].entries[1].amount.amount).toBe(0);
     });
   });
 });
