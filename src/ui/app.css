@@ -54,6 +54,32 @@ header {
   color: var(--text);
 }
 
+.header__settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.header__settings-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text);
+}
+
+.header__settings-btn:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+
 /* ── Bottom navigation ───────────────────────────── */
 
 .bottom-nav {
@@ -682,6 +708,93 @@ main {
 
 .btn-ghost:hover {
   color: var(--text);
+}
+
+.btn-cancel {
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font:
+    600 0.875rem -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Text',
+    system-ui,
+    sans-serif;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+
+/* ── Settings page ───────────────────────────────── */
+
+.settings-layout {
+  max-width: 480px;
+}
+
+.settings__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings__label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.settings__select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: #f5f5f7;
+  border-radius: 8px;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238A8A8E'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.settings__select:focus {
+  outline: 2px solid #007aff;
+  outline-offset: 1px;
+}
+
+.settings__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.settings__actions .btn-confirm,
+.settings__actions .btn-cancel {
+  display: block;
+  width: auto;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.875rem;
 }
 
 /* ── Snapshots table ─────────────────────────────── */

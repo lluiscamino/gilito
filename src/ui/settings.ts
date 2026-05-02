@@ -7,7 +7,7 @@ export interface Settings {
   readonly displayCurrency: CurrencyType;
 }
 
-export const DEFAULT_SETTINGS: Settings = { displayCurrency: Currency.EUR };
+const DEFAULT_SETTINGS: Settings = { displayCurrency: Currency.EUR };
 
 export function loadSettings(): Settings {
   try {
@@ -20,6 +20,7 @@ export function loadSettings(): Settings {
         : DEFAULT_SETTINGS.displayCurrency;
     return { displayCurrency };
   } catch {
+    console.warn('Could not load app settings');
     return DEFAULT_SETTINGS;
   }
 }
