@@ -3,10 +3,7 @@ import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { sumInDisplayCurrency, fromDecimal } from '../../lib/fx/money.ts';
 import type { Asset } from '../../lib/assets/asset.ts';
 import { collectAssets } from '../../lib/assets/balance_sheet.ts';
-import {
-  findCategoryById,
-  isValidCategoryId,
-} from '../../lib/assets/asset_category.ts';
+import { findCategoryById, isValidCategoryId } from '../../lib/assets/asset_category.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
