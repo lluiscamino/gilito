@@ -1,5 +1,8 @@
+import { Money } from 'ts-money';
 import { collectAssets } from '../assets/balance_sheet.ts';
 import type { BalanceSheet } from '../assets/balance_sheet.ts';
+import type { AssetCategory } from '../assets/asset_category.ts';
+import type { Currency } from '../fx/currency.ts';
 import { collectSources } from '../income/income_sheet.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
 import { Spreadsheet } from '../google/sheets/spreadsheet.ts';
@@ -72,6 +75,20 @@ export class WealthDataSpreadsheet {
     this.balanceSheets = [...this.balanceSheets, balanceSheet].sort(
       (a, b) => a.date.getTime() - b.date.getTime(),
     );
+    this.persistWealth();
+  }
+
+  updateAsset(assetId: string, category: AssetCategory, currency: Currency): void {
+    this.balanceSheets = this.balanceSheets.map((sheet) => ({
+      ...sheet,
+      snapshots: sheet.snapshots.map((snap) => {
+        if (snap.asset.id !== assetId) return snap;
+        return {
+          asset: { ...snap.asset, category, currency },
+          value: new Money(snap.value.amount, currency),
+        };
+      }),
+    }));
     this.persistWealth();
   }
 
