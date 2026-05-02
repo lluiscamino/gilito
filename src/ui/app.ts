@@ -8,6 +8,7 @@ import {
 import { App } from './components/app.ts';
 import { SignInScreen } from './components/sign_in_screen.ts';
 import { GoogleSheetsWealthRepository } from '../lib/data/google_sheets_wealth_repository.ts';
+import { LiveRateCurrencyConverter } from '../lib/fx/live_rate_currency_converter.ts';
 
 Chart.defaults.color = '#8A8A8E';
 Chart.defaults.borderColor = 'rgba(0, 0, 0, 0.06)';
@@ -48,9 +49,12 @@ function signIn(root: HTMLElement): void {
 }
 
 async function loadApp(root: HTMLElement, token: string): Promise<void> {
-  const repo = await GoogleSheetsWealthRepository.create(token);
+  const [repo, converter] = await Promise.all([
+    GoogleSheetsWealthRepository.create(token),
+    LiveRateCurrencyConverter.create(),
+  ]);
   root.innerHTML = '';
-  new App(repo).render(root);
+  new App(repo, converter).render(root);
 }
 
 function storeEmailHint(token: string): void {
