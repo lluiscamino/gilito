@@ -95,7 +95,7 @@ describe('BalanceSheetsMarshaller', () => {
       expect(result[0].snapshots[0].asset.id).toBe('cash');
     });
 
-    it('skips zero-value snapshots', () => {
+    it('includes zero-value snapshots', () => {
       const cashAsset: Asset = {
         id: 'cash',
         name: 'Cash',
@@ -113,11 +113,12 @@ describe('BalanceSheetsMarshaller', () => {
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 0 }, { value: 500 }],
       ];
       const result = marshaller.parse(rows, [cashAsset, stocksAsset]);
-      expect(result[0].snapshots).toHaveLength(1);
-      expect(result[0].snapshots[0].asset.id).toBe('stocks');
+      expect(result[0].snapshots).toHaveLength(2);
+      expect(result[0].snapshots[0].asset.id).toBe('cash');
+      expect(result[0].snapshots[0].value.amount).toBe(0);
     });
 
-    it('treats missing column values as zero and skips them', () => {
+    it('treats missing column values as zero', () => {
       const cashAsset: Asset = {
         id: 'cash',
         name: 'Cash',
@@ -135,8 +136,11 @@ describe('BalanceSheetsMarshaller', () => {
         [{ value: toSerial(new Date(Date.UTC(2024, 0, 1))) }, { value: 100 }], // stocks column missing
       ];
       const result = marshaller.parse(rows, [cashAsset, stocksAsset]);
-      expect(result[0].snapshots).toHaveLength(1);
+      expect(result[0].snapshots).toHaveLength(2);
       expect(result[0].snapshots[0].asset.id).toBe('cash');
+      expect(result[0].snapshots[0].value.amount).toBe(10000);
+      expect(result[0].snapshots[1].asset.id).toBe('stocks');
+      expect(result[0].snapshots[1].value.amount).toBe(0);
     });
   });
 
@@ -222,7 +226,31 @@ describe('BalanceSheetsMarshaller', () => {
     expect(result[0].snapshots[0].value.amount).toBe(100000);
     expect(result[0].snapshots[1].value.amount).toBe(500050);
     expect(result[1].date.getTime()).toBe(feb.getTime());
-    expect(result[1].snapshots).toHaveLength(1);
+    expect(result[1].snapshots).toHaveLength(2);
     expect(result[1].snapshots[0].value.amount).toBe(110000);
+    expect(result[1].snapshots[1].value.amount).toBe(0);
+  });
+
+  it('round-trips zero-value snapshots through toSheetRows → parse', () => {
+    const jan = new Date(Date.UTC(2024, 0, 1));
+    const cashAsset: Asset = { id: 'cash', name: 'Cash', category: CASH_SAVINGS, currency: 'EUR' };
+    const stocksAsset: Asset = {
+      id: 'stocks',
+      name: 'ETF',
+      category: EQUITIES_GENERAL,
+      currency: 'EUR',
+    };
+    const bs = {
+      date: jan,
+      snapshots: [
+        { asset: cashAsset, value: new Money(0, EUR) },
+        { asset: stocksAsset, value: new Money(500000, EUR) },
+      ],
+    };
+    const rows = marshaller.toSheetRows([bs], ['cash', 'stocks']);
+    const result = marshaller.parse(rows, [cashAsset, stocksAsset]);
+    expect(result[0].snapshots).toHaveLength(2);
+    expect(result[0].snapshots[0].value.amount).toBe(0);
+    expect(result[0].snapshots[1].value.amount).toBe(500000);
   });
 });
