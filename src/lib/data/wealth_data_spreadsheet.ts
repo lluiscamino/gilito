@@ -1,7 +1,9 @@
+import { Money } from 'ts-money';
 import { collectAssets } from '../assets/balance_sheet.ts';
 import type { BalanceSheet } from '../assets/balance_sheet.ts';
 import { collectSources } from '../income/income_sheet.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
+import type { Currency } from '../fx/currency.ts';
 import { Spreadsheet } from '../google/sheets/spreadsheet.ts';
 import { assertDefined } from '../utils/assert.ts';
 import { AssetsMarshaller } from './assets_marshaller.ts';
@@ -97,6 +99,20 @@ export class WealthDataSpreadsheet {
     this.incomeSheets = [...this.incomeSheets, sheet].sort(
       (a, b) => a.date.getTime() - b.date.getTime(),
     );
+    this.persistIncome();
+  }
+
+  updateIncomeSource(sourceId: string, currency: Currency): void {
+    this.incomeSheets = this.incomeSheets.map((sheet) => ({
+      ...sheet,
+      entries: sheet.entries.map((entry) => {
+        if (entry.source.id !== sourceId) return entry;
+        return {
+          source: { ...entry.source, currency },
+          amount: new Money(entry.amount.amount, currency),
+        };
+      }),
+    }));
     this.persistIncome();
   }
 

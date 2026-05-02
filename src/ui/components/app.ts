@@ -3,12 +3,14 @@ import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import { FixedRateCurrencyConverter } from '../../lib/fx/fixed_rate_currency_converter.ts';
 import { DashboardController } from '../controllers/dashboard_controller.ts';
 import { IncomeInputController } from '../controllers/income_input_controller.ts';
+import { IncomeSpreadsheetController } from '../controllers/income_spreadsheet_controller.ts';
 import { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import { SpreadsheetController } from '../controllers/spreadsheet_controller.ts';
 import { BottomNav } from './bottom_nav.ts';
 import { Header } from './header.ts';
 import { DataTable } from './data_table.ts';
 import { IncomeInputForm } from './income_input_form.ts';
+import { IncomeSourceManager } from './income_source_manager.ts';
 import { IncomePage } from './income_page.ts';
 import { MainDashboard } from './main_dashboard.ts';
 import { SnapshotInputForm } from './snapshot_input_form.ts';
@@ -74,9 +76,19 @@ export class App {
         );
       })
       .on('/income', () => {
-        content.innerHTML = '';
-        content.append(new IncomePage(repo, converter).render());
-        nav.setActive('income');
+        const renderIncome = () => {
+          content.innerHTML = '';
+          const incomeCtrl = new IncomeSpreadsheetController(repo, converter);
+          content.append(
+            new IncomeSourceManager(incomeCtrl.getSources(), (id, currency) => {
+              incomeCtrl.updateIncomeSource(id, currency);
+              renderIncome();
+            }).render(),
+          );
+          content.append(new IncomePage(repo, converter).render());
+          nav.setActive('income');
+        };
+        renderIncome();
       })
       .on('/income/input', () => {
         content.innerHTML = '';

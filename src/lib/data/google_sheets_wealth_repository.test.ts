@@ -19,6 +19,7 @@ function makeMockDataSpreadsheet() {
     getIncomeSheets: vi.fn().mockReturnValue([]),
     addIncomeSheet: vi.fn(),
     updateIncomeSheet: vi.fn(),
+    updateIncomeSource: vi.fn(),
   };
 }
 
@@ -151,6 +152,14 @@ describe('GoogleSheetsWealthRepository', () => {
       const sheet = makeIncomeSheet(2024);
       repo.updateIncomeSheet(sheet);
       expect(mockDataSpreadsheet.updateIncomeSheet).toHaveBeenCalledWith(sheet);
+    });
+  });
+
+  describe('updateIncomeSource', () => {
+    it('delegates to the spreadsheet', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      repo.updateIncomeSource('salary', Currency.USD);
+      expect(mockDataSpreadsheet.updateIncomeSource).toHaveBeenCalledWith('salary', Currency.USD);
     });
   });
 });

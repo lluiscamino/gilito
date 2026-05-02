@@ -1,6 +1,8 @@
 import type { Currency } from '../../lib/fx/currency.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { sumInDisplayCurrency, fromDecimal } from '../../lib/fx/money.ts';
+import type { IncomeSource } from '../../lib/income/income_source.ts';
+import { collectSources } from '../../lib/income/income_sheet.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
@@ -47,6 +49,14 @@ export class IncomeSpreadsheetController {
       );
       return { date: sheet.date, values, total };
     });
+  }
+
+  getSources(): IncomeSource[] {
+    return collectSources(this.repo.getAllIncomeSheets());
+  }
+
+  updateIncomeSource(sourceId: string, currency: Currency): void {
+    this.repo.updateIncomeSource(sourceId, currency);
   }
 
   updateCell(id: string, dateIndex: number, amount: number): void {

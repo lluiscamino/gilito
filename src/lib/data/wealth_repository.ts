@@ -1,5 +1,6 @@
 import type { BalanceSheet } from '../assets/balance_sheet.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
+import type { Currency } from '../fx/currency.ts';
 
 export interface WealthRepository {
   getAllBalanceSheets(): BalanceSheet[];
@@ -11,4 +12,5 @@ export interface WealthRepository {
   getLatestIncomeSheet(): IncomeSheet | undefined;
   addIncomeSheet(sheet: IncomeSheet): void;
   updateIncomeSheet(sheet: IncomeSheet): void;
+  updateIncomeSource(sourceId: string, currency: Currency): void;
 }
