@@ -99,6 +99,31 @@ const ASSET_CATEGORIES: readonly AssetCategory[] = [
         level: AssetCategoryLevel.Category,
         children: [],
       },
+      {
+        id: 'growth.commodities',
+        name: 'Commodities',
+        emoji: '🏅',
+        color: '#D4A017',
+        level: AssetCategoryLevel.Category,
+        children: [
+          {
+            id: 'growth.commodities.gold',
+            name: 'Gold',
+            emoji: '🥇',
+            color: '#FFD700',
+            level: AssetCategoryLevel.Detail,
+            children: [],
+          },
+          {
+            id: 'growth.commodities.silver',
+            name: 'Silver',
+            emoji: '🥈',
+            color: '#C0C0C0',
+            level: AssetCategoryLevel.Detail,
+            children: [],
+          },
+        ],
+      },
     ],
   },
 ];

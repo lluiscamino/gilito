@@ -21,6 +21,7 @@ describe('findCategoryById', () => {
   it('finds a mid-level category', () => {
     expect(findCategoryById('defensive.cash').name).toBe('Cash');
     expect(findCategoryById('growth.equities').name).toBe('Equities');
+    expect(findCategoryById('growth.commodities').name).toBe('Commodities');
   });
 
   it('finds a leaf category', () => {
@@ -30,6 +31,8 @@ describe('findCategoryById', () => {
     expect(findCategoryById('growth.equities.general').name).toBe('General Investments');
     expect(findCategoryById('growth.property').name).toBe('Property');
     expect(findCategoryById('growth.crypto').name).toBe('Crypto');
+    expect(findCategoryById('growth.commodities.gold').name).toBe('Gold');
+    expect(findCategoryById('growth.commodities.silver').name).toBe('Silver');
   });
 
   it('assigns the correct level to each category', () => {
@@ -39,10 +42,13 @@ describe('findCategoryById', () => {
     expect(findCategoryById('growth.equities').level).toBe(AssetCategoryLevel.Category);
     expect(findCategoryById('growth.property').level).toBe(AssetCategoryLevel.Category);
     expect(findCategoryById('growth.crypto').level).toBe(AssetCategoryLevel.Category);
+    expect(findCategoryById('growth.commodities').level).toBe(AssetCategoryLevel.Category);
     expect(findCategoryById('defensive.cash.current').level).toBe(AssetCategoryLevel.Detail);
     expect(findCategoryById('defensive.cash.savings').level).toBe(AssetCategoryLevel.Detail);
     expect(findCategoryById('growth.equities.pension').level).toBe(AssetCategoryLevel.Detail);
     expect(findCategoryById('growth.equities.general').level).toBe(AssetCategoryLevel.Detail);
+    expect(findCategoryById('growth.commodities.gold').level).toBe(AssetCategoryLevel.Detail);
+    expect(findCategoryById('growth.commodities.silver').level).toBe(AssetCategoryLevel.Detail);
   });
 });
 
@@ -51,6 +57,8 @@ describe('isValidCategoryId', () => {
     expect(isValidCategoryId('defensive')).toBe(true);
     expect(isValidCategoryId('defensive.cash.savings')).toBe(true);
     expect(isValidCategoryId('growth.crypto')).toBe(true);
+    expect(isValidCategoryId('growth.commodities.gold')).toBe(true);
+    expect(isValidCategoryId('growth.commodities.silver')).toBe(true);
   });
 
   it('returns false for unknown ids', () => {
@@ -74,6 +82,8 @@ describe('leafCategories', () => {
     expect(ids).toContain('growth.equities.general');
     expect(ids).toContain('growth.property');
     expect(ids).toContain('growth.crypto');
+    expect(ids).toContain('growth.commodities.gold');
+    expect(ids).toContain('growth.commodities.silver');
   });
 
   it('does not include internal nodes', () => {
@@ -82,6 +92,7 @@ describe('leafCategories', () => {
     expect(ids).not.toContain('growth');
     expect(ids).not.toContain('defensive.cash');
     expect(ids).not.toContain('growth.equities');
+    expect(ids).not.toContain('growth.commodities');
   });
 });
 
@@ -163,5 +174,23 @@ describe('getSnapshotsPerCategoryLevel', () => {
     const sheet = makeSheet([{ assetId: 'a1', categoryId: 'defensive.cash.current' }]);
     const result = getSnapshotsPerCategoryLevel(AssetCategoryLevel.Category, sheet);
     expect(result.find((r) => r.category.id === 'growth.equities')?.snapshots).toHaveLength(0);
+  });
+
+  it('groups commodities snapshots under growth.commodities', () => {
+    const sheet = makeSheet([
+      { assetId: 'gold1', categoryId: 'growth.commodities.gold' },
+      { assetId: 'silver1', categoryId: 'growth.commodities.silver' },
+    ]);
+    const result = getSnapshotsPerCategoryLevel(AssetCategoryLevel.Category, sheet);
+    expect(result.find((r) => r.category.id === 'growth.commodities')?.snapshots).toHaveLength(2);
+  });
+
+  it('groups commodities snapshots under growth at Overview level', () => {
+    const sheet = makeSheet([
+      { assetId: 'gold1', categoryId: 'growth.commodities.gold' },
+      { assetId: 'a1', categoryId: 'growth.equities.general' },
+    ]);
+    const result = getSnapshotsPerCategoryLevel(AssetCategoryLevel.Overview, sheet);
+    expect(result.find((r) => r.category.id === 'growth')?.snapshots).toHaveLength(2);
   });
 });
