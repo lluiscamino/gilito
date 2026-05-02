@@ -9,10 +9,12 @@ const TAX_PAID_COLUMN_ID = '__tax_paid__';
 export class IncomeSpreadsheetController {
   private readonly repo: WealthRepository;
   private readonly converter: CurrencyConverter;
+  private readonly displayCurrency: Currency;
 
-  constructor(repo: WealthRepository, converter: CurrencyConverter) {
+  constructor(repo: WealthRepository, converter: CurrencyConverter, displayCurrency: Currency) {
     this.repo = repo;
     this.converter = converter;
+    this.displayCurrency = displayCurrency;
   }
 
   getColumns(): TableColumn[] {
@@ -44,6 +46,7 @@ export class IncomeSpreadsheetController {
       const total = sumInDisplayCurrency(
         sheet.entries.map((e) => e.amount),
         this.converter,
+        this.displayCurrency,
       );
       return { date: sheet.date, values, total };
     });

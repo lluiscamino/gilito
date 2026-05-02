@@ -1,6 +1,5 @@
 import { Money } from 'ts-money';
 import { Currency } from './currency.ts';
-import { DISPLAY_CURRENCY } from './money.ts';
 import type { CurrencyConverter } from './currency_converter.ts';
 
 const CACHE_KEY = 'fx_rates_cache';
@@ -17,17 +16,16 @@ interface RatesCache {
 }
 
 export class LiveRateCurrencyConverter implements CurrencyConverter {
-  private readonly rates: ReadonlyMap<Currency, number>;
+  private readonly eurRates: ReadonlyMap<Currency, number>;
 
-  private constructor(rates: Partial<Record<Currency, number>>) {
-    this.rates = new Map(Object.entries(rates) as [Currency, number][]);
+  private constructor(eurRates: Partial<Record<Currency, number>>) {
+    this.eurRates = new Map(Object.entries(eurRates) as [Currency, number][]);
   }
 
-  toDisplayCurrency(money: Money): Money {
-    if (money.currency === DISPLAY_CURRENCY) return money;
-    const rate = this.rates.get(money.currency as Currency);
-    if (rate === undefined) throw new Error(`No EUR rate for currency: ${money.currency}`);
-    return new Money(Math.round(money.amount * rate), DISPLAY_CURRENCY);
+  toCurrency(money: Money, currency: Currency): Money {
+    if (money.currency === currency) return money;
+    const eurCents = this.toEurCents(money);
+    return this.eurCentsToCurrency(eurCents, currency);
   }
 
   static async create(): Promise<LiveRateCurrencyConverter> {
@@ -42,6 +40,20 @@ export class LiveRateCurrencyConverter implements CurrencyConverter {
       console.error('Failed to fetch FX rates, using fallback:', e);
       return new LiveRateCurrencyConverter(FALLBACK_RATES);
     }
+  }
+
+  private toEurCents(money: Money): number {
+    if (money.currency === Currency.EUR) return money.amount;
+    const rate = this.eurRates.get(money.currency as Currency);
+    if (rate === undefined) throw new Error(`No EUR rate for currency: ${money.currency}`);
+    return Math.round(money.amount * rate);
+  }
+
+  private eurCentsToCurrency(eurCents: number, currency: Currency): Money {
+    if (currency === Currency.EUR) return new Money(eurCents, Currency.EUR);
+    const rate = this.eurRates.get(currency);
+    if (rate === undefined) throw new Error(`No EUR rate for currency: ${currency}`);
+    return new Money(Math.round(eurCents / rate), currency);
   }
 }
 
