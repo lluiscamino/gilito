@@ -5,8 +5,10 @@ import { DashboardController } from '../controllers/dashboard_controller.ts';
 import { IncomeInputController } from '../controllers/income_input_controller.ts';
 import { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import { SpreadsheetController } from '../controllers/spreadsheet_controller.ts';
+import { leafCategories } from '../../lib/assets/asset_category.ts';
 import { BottomNav } from './bottom_nav.ts';
 import { Header } from './header.ts';
+import { AssetManager } from './asset_manager.ts';
 import { DataTable } from './data_table.ts';
 import { IncomeInputForm } from './income_input_form.ts';
 import { IncomePage } from './income_page.ts';
@@ -56,14 +58,23 @@ export class App {
         nav.setActive('dashboard');
       })
       .on('/snapshots', () => {
-        content.innerHTML = '';
-        const ctrl = new SpreadsheetController(repo, converter);
-        content.append(
-          new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, amount) =>
-            ctrl.updateCell(id, i, amount),
-          ).render(),
-        );
-        nav.setActive('snapshots');
+        const renderSnapshots = () => {
+          content.innerHTML = '';
+          const ctrl = new SpreadsheetController(repo, converter);
+          content.append(
+            new AssetManager(ctrl.getAssets(), leafCategories(), (id, categoryId, currency) => {
+              ctrl.updateAsset(id, categoryId, currency);
+              renderSnapshots();
+            }).render(),
+          );
+          content.append(
+            new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, amount) =>
+              ctrl.updateCell(id, i, amount),
+            ).render(),
+          );
+          nav.setActive('snapshots');
+        };
+        renderSnapshots();
       })
       .on('/input', () => {
         content.innerHTML = '';

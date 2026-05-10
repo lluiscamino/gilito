@@ -16,6 +16,7 @@ function makeMockDataSpreadsheet() {
     getBalanceSheets: vi.fn().mockReturnValue([]),
     addBalanceSheet: vi.fn(),
     updateBalanceSheet: vi.fn(),
+    updateAsset: vi.fn(),
     getIncomeSheets: vi.fn().mockReturnValue([]),
     addIncomeSheet: vi.fn(),
     updateIncomeSheet: vi.fn(),
@@ -105,6 +106,15 @@ describe('GoogleSheetsWealthRepository', () => {
       const bs = makeBalanceSheet(2024);
       repo.updateBalanceSheet(bs);
       expect(mockDataSpreadsheet.updateBalanceSheet).toHaveBeenCalledWith(bs);
+    });
+  });
+
+  describe('updateAsset', () => {
+    it('delegates to the spreadsheet', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      const category = findCategoryById('growth.property');
+      repo.updateAsset('cash', category, Currency.EUR);
+      expect(mockDataSpreadsheet.updateAsset).toHaveBeenCalledWith('cash', category, Currency.EUR);
     });
   });
 

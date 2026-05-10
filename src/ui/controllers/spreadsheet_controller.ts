@@ -1,6 +1,9 @@
 import type { Currency } from '../../lib/fx/currency.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { sumInDisplayCurrency, fromDecimal } from '../../lib/fx/money.ts';
+import type { Asset } from '../../lib/assets/asset.ts';
+import { collectAssets } from '../../lib/assets/balance_sheet.ts';
+import { findCategoryById, isValidCategoryId } from '../../lib/assets/asset_category.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { TableColumn, TableRow } from '../components/data_table.ts';
 
@@ -34,6 +37,15 @@ export class SpreadsheetController {
       );
       return { date: sheet.date, values, total };
     });
+  }
+
+  getAssets(): Asset[] {
+    return collectAssets(this.repo.getAllBalanceSheets());
+  }
+
+  updateAsset(assetId: string, categoryId: string, currency: Currency): void {
+    if (!isValidCategoryId(categoryId)) return;
+    this.repo.updateAsset(assetId, findCategoryById(categoryId), currency);
   }
 
   updateCell(id: string, dateIndex: number, amount: number): void {

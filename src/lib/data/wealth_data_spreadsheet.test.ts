@@ -286,4 +286,69 @@ describe('WealthDataSpreadsheet', () => {
       await vi.waitFor(() => expect(mocks.incomeSheet.write).toHaveBeenCalled());
     });
   });
+
+  describe('updateAsset', () => {
+    it('updates the category of an asset across all balance sheets', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      wds.addBalanceSheet(makeBalanceSheet(JAN_2024));
+      wds.addBalanceSheet(makeBalanceSheet(FEB_2024));
+      await flushPromises();
+
+      const newCategory = findCategoryById('growth.equities.general');
+      wds.updateAsset('cash', newCategory, 'EUR');
+
+      const sheets = wds.getBalanceSheets();
+      expect(sheets[0].snapshots[0].asset.category.id).toBe('growth.equities.general');
+      expect(sheets[1].snapshots[0].asset.category.id).toBe('growth.equities.general');
+    });
+
+    it('updates the currency of an asset and the corresponding Money currency', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      wds.addBalanceSheet(makeBalanceSheet(JAN_2024, 100000));
+      await flushPromises();
+
+      const category = findCategoryById('defensive.cash.savings');
+      wds.updateAsset('cash', category, 'USD');
+
+      const snap = wds.getBalanceSheets()[0].snapshots[0];
+      expect(snap.asset.currency).toBe('USD');
+      expect(snap.value.currency).toBe('USD');
+      expect(snap.value.amount).toBe(100000);
+    });
+
+    it('does not modify snapshots for other assets', async () => {
+      const otherAsset: Asset = {
+        id: 'stocks',
+        name: 'ETF',
+        category: findCategoryById('growth.equities.general'),
+        currency: 'EUR',
+      };
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      const sheet = {
+        date: JAN_2024,
+        snapshots: [
+          { asset: cashAsset, value: new Money(100000, Currencies.EUR) },
+          { asset: otherAsset, value: new Money(200000, Currencies.EUR) },
+        ],
+      };
+      wds.addBalanceSheet(sheet);
+      await flushPromises();
+
+      wds.updateAsset('cash', findCategoryById('growth.property'), 'USD');
+
+      const snaps = wds.getBalanceSheets()[0].snapshots;
+      expect(snaps[1].asset.currency).toBe('EUR');
+      expect(snaps[1].asset.category.id).toBe('growth.equities.general');
+    });
+
+    it('triggers persistence after updating', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      wds.addBalanceSheet(makeBalanceSheet(JAN_2024));
+      await flushPromises();
+      mocks.dataSheet.write.mockClear();
+
+      wds.updateAsset('cash', findCategoryById('growth.property'), 'EUR');
+      await vi.waitFor(() => expect(mocks.dataSheet.write).toHaveBeenCalled());
+    });
+  });
 });
