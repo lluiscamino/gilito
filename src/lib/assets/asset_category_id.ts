@@ -8,4 +8,7 @@ export type AssetCategoryId =
   | 'growth.equities.pension'
   | 'growth.equities.general'
   | 'growth.property'
-  | 'growth.crypto';
+  | 'growth.crypto'
+  | 'growth.commodities'
+  | 'growth.commodities.gold'
+  | 'growth.commodities.silver';
