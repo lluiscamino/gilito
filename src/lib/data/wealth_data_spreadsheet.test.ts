@@ -286,4 +286,61 @@ describe('WealthDataSpreadsheet', () => {
       await vi.waitFor(() => expect(mocks.incomeSheet.write).toHaveBeenCalled());
     });
   });
+
+  describe('updateIncomeSource', () => {
+    it('updates the currency of a source across all income sheets', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      wds.addIncomeSheet(makeIncomeSheet(JAN_2024, 500000));
+      wds.addIncomeSheet(makeIncomeSheet(FEB_2024, 600000));
+      await flushPromises();
+
+      wds.updateIncomeSource('salary', 'USD');
+
+      const sheets = wds.getIncomeSheets();
+      expect(sheets[0].entries[0].source.currency).toBe('USD');
+      expect(sheets[1].entries[0].source.currency).toBe('USD');
+    });
+
+    it('updates the Money currency for affected entries', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      wds.addIncomeSheet(makeIncomeSheet(JAN_2024, 500000));
+      await flushPromises();
+
+      wds.updateIncomeSource('salary', 'USD');
+
+      const entry = wds.getIncomeSheets()[0].entries[0];
+      expect(entry.amount.currency).toBe('USD');
+      expect(entry.amount.amount).toBe(500000);
+    });
+
+    it('does not modify entries for other sources', async () => {
+      const otherSource: IncomeSource = { id: 'freelance', name: 'Freelance', currency: 'EUR' };
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      const sheet = {
+        date: JAN_2024,
+        entries: [
+          { source: salarySource, amount: new Money(500000, Currencies.EUR) },
+          { source: otherSource, amount: new Money(100000, Currencies.EUR) },
+        ],
+        taxPaid: new Money(0, Currencies.EUR),
+      };
+      wds.addIncomeSheet(sheet);
+      await flushPromises();
+
+      wds.updateIncomeSource('salary', 'USD');
+
+      const entries = wds.getIncomeSheets()[0].entries;
+      expect(entries[1].source.currency).toBe('EUR');
+    });
+
+    it('triggers persistence after updating', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      wds.addIncomeSheet(makeIncomeSheet(JAN_2024));
+      await flushPromises();
+      mocks.incomeSheet.write.mockClear();
+
+      wds.updateIncomeSource('salary', 'USD');
+      await vi.waitFor(() => expect(mocks.incomeSheet.write).toHaveBeenCalled());
+    });
+  });
 });

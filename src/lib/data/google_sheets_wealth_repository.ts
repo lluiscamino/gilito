@@ -1,5 +1,6 @@
 import type { BalanceSheet } from '../assets/balance_sheet.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
+import type { Currency } from '../fx/currency.ts';
 import type { WealthRepository } from './wealth_repository.ts';
 import { WealthDataSpreadsheet } from './wealth_data_spreadsheet.ts';
 
@@ -44,5 +45,9 @@ export class GoogleSheetsWealthRepository implements WealthRepository {
 
   updateIncomeSheet(sheet: IncomeSheet): void {
     this.dataSpreadsheet.updateIncomeSheet(sheet);
+  }
+
+  updateIncomeSource(sourceId: string, currency: Currency): void {
+    this.dataSpreadsheet.updateIncomeSource(sourceId, currency);
   }
 }
