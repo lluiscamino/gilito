@@ -14,6 +14,10 @@ export class GoogleSheetsWealthRepository implements WealthRepository {
     return new GoogleSheetsWealthRepository(await WealthDataSpreadsheet.getOrCreate(token));
   }
 
+  getSpreadsheetUrl(): string {
+    return this.dataSpreadsheet.getSpreadsheetUrl();
+  }
+
   getAllBalanceSheets(): BalanceSheet[] {
     return this.dataSpreadsheet.getBalanceSheets();
   }

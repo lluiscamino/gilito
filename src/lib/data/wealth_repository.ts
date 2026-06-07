@@ -2,6 +2,8 @@ import type { BalanceSheet } from '../assets/balance_sheet.ts';
 import type { IncomeSheet } from '../income/income_sheet.ts';
 
 export interface WealthRepository {
+  getSpreadsheetUrl(): string;
+
   getAllBalanceSheets(): BalanceSheet[];
   getLatestBalanceSheet(): BalanceSheet | undefined;
   addBalanceSheet(balanceSheet: BalanceSheet): void;

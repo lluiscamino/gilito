@@ -7,6 +7,7 @@ import { createSpreadsheet } from './spreadsheets_api.ts';
 // standard JS constructor-override pattern: if a constructor returns an object, `new` yields it.
 let mockDriveInstance: { findSpreadsheetId: ReturnType<typeof vi.fn> };
 let mockApiInstance: {
+  spreadsheetId?: string;
   getSheets?: ReturnType<typeof vi.fn>;
   addSheets?: ReturnType<typeof vi.fn>;
   batchClearValues?: ReturnType<typeof vi.fn>;
@@ -80,6 +81,7 @@ describe('Spreadsheet', () => {
 
     beforeEach(async () => {
       mockApiInstance = {
+        spreadsheetId: 'sid',
         addSheets: vi.fn().mockResolvedValue([{ sheetId: 99, title: 'NewSheet' }]),
         batchClearValues: vi.fn().mockResolvedValue(undefined),
       };
@@ -91,6 +93,12 @@ describe('Spreadsheet', () => {
         ],
       });
       spreadsheet = await Spreadsheet.createNewSpreadsheet('token', 'gilito', ['Data', 'Assets']);
+    });
+
+    describe('getUrl', () => {
+      it('builds the spreadsheet edit URL from the spreadsheet id', () => {
+        expect(spreadsheet.getUrl()).toBe('https://docs.google.com/spreadsheets/d/sid/edit');
+      });
     });
 
     describe('getSheets', () => {

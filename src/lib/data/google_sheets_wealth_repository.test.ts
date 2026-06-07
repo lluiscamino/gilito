@@ -13,6 +13,7 @@ vi.mock('./wealth_data_spreadsheet.ts', () => ({
 
 function makeMockDataSpreadsheet() {
   return {
+    getSpreadsheetUrl: vi.fn().mockReturnValue('https://docs.google.com/spreadsheets/d/sid/edit'),
     getBalanceSheets: vi.fn().mockReturnValue([]),
     addBalanceSheet: vi.fn(),
     updateBalanceSheet: vi.fn(),
@@ -59,6 +60,14 @@ describe('GoogleSheetsWealthRepository', () => {
     it('delegates to WealthDataSpreadsheet.getOrCreate with the provided token', async () => {
       await GoogleSheetsWealthRepository.create('my-token');
       expect(WealthDataSpreadsheet.getOrCreate).toHaveBeenCalledWith('my-token');
+    });
+  });
+
+  describe('getSpreadsheetUrl', () => {
+    it('delegates to the data spreadsheet', async () => {
+      const repo = await GoogleSheetsWealthRepository.create('token');
+      expect(repo.getSpreadsheetUrl()).toBe('https://docs.google.com/spreadsheets/d/sid/edit');
+      expect(mockDataSpreadsheet.getSpreadsheetUrl).toHaveBeenCalled();
     });
   });
 

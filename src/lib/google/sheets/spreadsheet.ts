@@ -12,6 +12,10 @@ export class Spreadsheet {
     this.sheets = sheets;
   }
 
+  getUrl(): string {
+    return `https://docs.google.com/spreadsheets/d/${this.api.spreadsheetId}/edit`;
+  }
+
   getSheets(): Sheet[] {
     return this.sheets;
   }

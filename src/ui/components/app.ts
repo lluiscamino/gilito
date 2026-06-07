@@ -97,6 +97,7 @@ export class App {
         content.append(
           new SettingsPage(
             loadSettings(),
+            repo.getSpreadsheetUrl(),
             (newSettings) => {
               saveSettings(newSettings);
               router.navigate('/');

@@ -45,6 +45,7 @@ function makeMockSpreadsheet() {
     }),
     getSheets: vi.fn().mockReturnValue([dataSheet, assetsSheet, incomeSheet, incomeSourcesSheet]),
     addSheets: vi.fn().mockResolvedValue([]),
+    getUrl: vi.fn().mockReturnValue('https://docs.google.com/spreadsheets/d/sid/edit'),
   };
   return { spreadsheet, dataSheet, assetsSheet, incomeSheet, incomeSourcesSheet };
 }
@@ -159,6 +160,14 @@ describe('WealthDataSpreadsheet', () => {
       const wds = await WealthDataSpreadsheet.getOrCreate('token');
       expect(wds.getBalanceSheets()).toEqual([]);
       expect(wds.getIncomeSheets()).toEqual([]);
+    });
+  });
+
+  describe('getSpreadsheetUrl', () => {
+    it('delegates to the underlying spreadsheet', async () => {
+      const wds = await WealthDataSpreadsheet.getOrCreate('token');
+      expect(wds.getSpreadsheetUrl()).toBe('https://docs.google.com/spreadsheets/d/sid/edit');
+      expect(mocks.spreadsheet.getUrl).toHaveBeenCalled();
     });
   });
 

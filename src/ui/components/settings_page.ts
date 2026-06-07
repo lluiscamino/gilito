@@ -3,11 +3,18 @@ import type { Settings } from '../settings.ts';
 
 export class SettingsPage {
   private readonly settings: Settings;
+  private readonly spreadsheetUrl: string;
   private readonly onSave: (settings: Settings) => void;
   private readonly onCancel: () => void;
 
-  constructor(settings: Settings, onSave: (settings: Settings) => void, onCancel: () => void) {
+  constructor(
+    settings: Settings,
+    spreadsheetUrl: string,
+    onSave: (settings: Settings) => void,
+    onCancel: () => void,
+  ) {
     this.settings = settings;
+    this.spreadsheetUrl = spreadsheetUrl;
     this.onSave = onSave;
     this.onCancel = onCancel;
   }
@@ -15,9 +22,10 @@ export class SettingsPage {
   render(): HTMLElement {
     const select = createCurrencySelect(this.settings.displayCurrency);
     const row = createCurrencyRow(select);
+    const spreadsheetRow = createSpreadsheetRow(this.spreadsheetUrl);
     const actions = createActions(this.onCancel);
 
-    const form = createForm(row, actions, () => {
+    const form = createForm(row, spreadsheetRow, actions, () => {
       this.onSave({ displayCurrency: select.value as Settings['displayCurrency'] });
     });
 
@@ -40,9 +48,14 @@ function createCard(title: HTMLElement, form: HTMLElement): HTMLElement {
   return card;
 }
 
-function createForm(row: HTMLElement, actions: HTMLElement, onSubmit: () => void): HTMLFormElement {
+function createForm(
+  row: HTMLElement,
+  spreadsheetRow: HTMLElement,
+  actions: HTMLElement,
+  onSubmit: () => void,
+): HTMLFormElement {
   const form = document.createElement('form');
-  form.append(row, actions);
+  form.append(row, spreadsheetRow, actions);
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     onSubmit();
@@ -67,6 +80,30 @@ function createCurrencyRow(select: HTMLSelectElement): HTMLElement {
   label.htmlFor = 'display-currency-select';
 
   row.append(label, select);
+  return row;
+}
+
+function createSpreadsheetRow(spreadsheetUrl: string): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'settings__row';
+
+  const label = document.createElement('span');
+  label.className = 'settings__label';
+  label.textContent = 'Backing spreadsheet';
+
+  const logo = document.createElement('img');
+  logo.src = './sheets.svg';
+  logo.alt = '';
+  logo.className = 'settings__link-icon';
+
+  const link = document.createElement('a');
+  link.className = 'btn-cancel settings__link';
+  link.append(logo, 'Open spreadsheet');
+  link.href = spreadsheetUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+
+  row.append(label, link);
   return row;
 }
 

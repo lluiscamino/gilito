@@ -732,6 +732,19 @@ main {
   color: var(--text);
 }
 
+.settings__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  text-decoration: none;
+}
+
+.settings__link-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* ── Settings page ───────────────────────────────── */
 
 .settings-layout {
@@ -751,6 +764,10 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.settings__row + .settings__row {
+  margin-top: 1rem;
 }
 
 .settings__label {

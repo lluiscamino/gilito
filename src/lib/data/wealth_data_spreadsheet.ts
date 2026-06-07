@@ -64,6 +64,10 @@ export class WealthDataSpreadsheet {
     this.incomeSheets = incomeSheets;
   }
 
+  getSpreadsheetUrl(): string {
+    return this.spreadsheet.getUrl();
+  }
+
   getBalanceSheets(): BalanceSheet[] {
     return this.balanceSheets;
   }
