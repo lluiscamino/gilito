@@ -6,6 +6,7 @@ import {
   requestDriveTokenSilently,
 } from '../lib/google/auth.ts';
 import { App } from './components/app.ts';
+import { LoadingScreen } from './components/loading_screen.ts';
 import { SignInScreen } from './components/sign_in_screen.ts';
 import { GoogleSheetsWealthRepository } from '../lib/data/google_sheets_wealth_repository.ts';
 import { LiveRateCurrencyConverter } from '../lib/fx/live_rate_currency_converter.ts';
@@ -49,6 +50,8 @@ function signIn(root: HTMLElement): void {
 }
 
 async function loadApp(root: HTMLElement, token: string): Promise<void> {
+  root.innerHTML = '';
+  root.append(new LoadingScreen().render());
   const [repo, converter] = await Promise.all([
     GoogleSheetsWealthRepository.create(token),
     LiveRateCurrencyConverter.create(),

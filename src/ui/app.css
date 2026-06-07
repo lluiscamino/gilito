@@ -232,6 +232,85 @@ main {
   margin-left: 0.15rem;
 }
 
+/* ── Loading skeleton ────────────────────────────── */
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: skeleton-shimmer 1.6s infinite;
+}
+
+.skeleton-hero__label {
+  width: 40%;
+  height: 0.7rem;
+}
+
+.skeleton-hero__amount {
+  width: 65%;
+  height: 3rem;
+  margin-top: 0.7rem;
+  border-radius: 10px;
+}
+
+.skeleton-hero__delta {
+  width: 48%;
+  height: 0.9rem;
+  margin-top: 1rem;
+}
+
+.skeleton-action {
+  flex: 1;
+  height: 64px;
+  border-radius: var(--radius);
+}
+
+.skeleton-card__title {
+  width: 32%;
+  height: 0.68rem;
+  margin-bottom: 1.25rem;
+}
+
+.skeleton-chart {
+  height: 260px;
+  border-radius: 12px;
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-row + .skeleton-row {
+  margin-top: 1rem;
+}
+
+.skeleton-row__label {
+  width: 28%;
+  height: 0.8rem;
+}
+
+.skeleton-row__bar {
+  flex: 1;
+  height: 0.8rem;
+}
+
 /* ── Wealth chart ────────────────────────────────── */
 
 .chart-wrap--line {
