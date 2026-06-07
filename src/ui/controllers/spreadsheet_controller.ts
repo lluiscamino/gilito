@@ -7,10 +7,12 @@ import type { TableColumn, TableRow } from '../components/data_table.ts';
 export class SpreadsheetController {
   private readonly repo: WealthRepository;
   private readonly converter: CurrencyConverter;
+  private readonly displayCurrency: Currency;
 
-  constructor(repo: WealthRepository, converter: CurrencyConverter) {
+  constructor(repo: WealthRepository, converter: CurrencyConverter, displayCurrency: Currency) {
     this.repo = repo;
     this.converter = converter;
+    this.displayCurrency = displayCurrency;
   }
 
   getColumns(): TableColumn[] {
@@ -31,6 +33,7 @@ export class SpreadsheetController {
       const total = sumInDisplayCurrency(
         sheet.snapshots.map((s) => s.value),
         this.converter,
+        this.displayCurrency,
       );
       return { date: sheet.date, values, total };
     });

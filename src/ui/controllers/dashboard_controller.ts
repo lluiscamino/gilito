@@ -4,8 +4,9 @@ import {
   getSnapshotsPerCategoryLevel,
 } from '../../lib/assets/asset_category.ts';
 import type { BalanceSheet } from '../../lib/assets/balance_sheet.ts';
+import type { Currency } from '../../lib/fx/currency.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
-import { DISPLAY_CURRENCY, sumInDisplayCurrency } from '../../lib/fx/money.ts';
+import { sumInDisplayCurrency } from '../../lib/fx/money.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import { AllocationLevel } from './allocations.ts';
 import type { Allocations, AllocationEntry } from './allocations.ts';
@@ -16,8 +17,9 @@ export class DashboardController {
   private readonly latest: BalanceSheet;
   private readonly all: BalanceSheet[];
   private readonly converter: CurrencyConverter;
+  private readonly displayCurrency: Currency;
 
-  constructor(repo: WealthRepository, converter: CurrencyConverter) {
+  constructor(repo: WealthRepository, converter: CurrencyConverter, displayCurrency: Currency) {
     this.all = repo.getAllBalanceSheets();
     this.latest =
       repo.getLatestBalanceSheet() ??
@@ -25,12 +27,14 @@ export class DashboardController {
         throw new Error('No balance sheets');
       })();
     this.converter = converter;
+    this.displayCurrency = displayCurrency;
   }
 
   private sheetTotal(sheet: BalanceSheet): Money {
     return sumInDisplayCurrency(
       sheet.snapshots.map((s) => s.value),
       this.converter,
+      this.displayCurrency,
     );
   }
 
@@ -42,7 +46,7 @@ export class DashboardController {
     if (this.all.length < 2) return null;
     const prev = this.sheetTotal(this.all.at(-2)!);
     const current = this.sheetTotal(this.latest);
-    const delta = new Money(current.amount - prev.amount, DISPLAY_CURRENCY);
+    const delta = new Money(current.amount - prev.amount, this.displayCurrency);
     return { delta, percentage: (delta.amount / prev.amount) * 100 };
   }
 
@@ -55,6 +59,7 @@ export class DashboardController {
           const amount = sumInDisplayCurrency(
             snapshots.map((s) => s.value),
             this.converter,
+            this.displayCurrency,
           );
           return {
             label: category.name,
@@ -68,7 +73,7 @@ export class DashboardController {
 
     const assetEntries: readonly AllocationEntry[] = this.latest.snapshots
       .map(({ asset, value }) => {
-        const amount = this.converter.toDisplayCurrency(value);
+        const amount = this.converter.toCurrency(value, this.displayCurrency);
         return {
           label: asset.name,
           emoji: asset.category.emoji,

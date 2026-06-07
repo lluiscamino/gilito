@@ -22,8 +22,8 @@ export class IncomeChart {
   private readonly ctrl: IncomeChartController;
   private period: Period = 'month';
 
-  constructor(sheets: IncomeSheet[], converter: CurrencyConverter) {
-    this.ctrl = new IncomeChartController(sheets, converter);
+  constructor(sheets: IncomeSheet[], converter: CurrencyConverter, displayCurrency: Currency) {
+    this.ctrl = new IncomeChartController(sheets, converter, displayCurrency);
   }
 
   render(): HTMLElement {

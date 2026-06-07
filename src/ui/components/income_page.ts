@@ -1,3 +1,4 @@
+import type { Currency } from '../../lib/fx/currency.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { IncomeSpreadsheetController } from '../controllers/income_spreadsheet_controller.ts';
@@ -7,10 +8,12 @@ import { IncomeChart } from './income_chart.ts';
 export class IncomePage {
   private readonly repo: WealthRepository;
   private readonly converter: CurrencyConverter;
+  private readonly displayCurrency: Currency;
 
-  constructor(repo: WealthRepository, converter: CurrencyConverter) {
+  constructor(repo: WealthRepository, converter: CurrencyConverter, displayCurrency: Currency) {
     this.repo = repo;
     this.converter = converter;
+    this.displayCurrency = displayCurrency;
   }
 
   render(): HTMLElement {
@@ -18,9 +21,15 @@ export class IncomePage {
 
     const chartSection = document.createElement('div');
     chartSection.className = 'income-chart-section';
-    chartSection.append(new IncomeChart(this.repo.getAllIncomeSheets(), this.converter).render());
+    chartSection.append(
+      new IncomeChart(
+        this.repo.getAllIncomeSheets(),
+        this.converter,
+        this.displayCurrency,
+      ).render(),
+    );
 
-    const ctrl = new IncomeSpreadsheetController(this.repo, this.converter);
+    const ctrl = new IncomeSpreadsheetController(this.repo, this.converter, this.displayCurrency);
     const tableEl = new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, amount) =>
       ctrl.updateCell(id, i, amount),
     ).render();

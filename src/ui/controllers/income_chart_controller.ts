@@ -40,10 +40,12 @@ const TAX_PAID_SOURCE: ValueSource = { label: 'Tax Paid', color: '#FF3B30' };
 export class IncomeChartController {
   private readonly sheets: IncomeSheet[];
   private readonly converter: CurrencyConverter;
+  private readonly displayCurrency: Currency;
 
-  constructor(sheets: IncomeSheet[], converter: CurrencyConverter) {
+  constructor(sheets: IncomeSheet[], converter: CurrencyConverter, displayCurrency: Currency) {
     this.sheets = sheets;
     this.converter = converter;
+    this.displayCurrency = displayCurrency;
   }
 
   getMonthlyData(): IncomeChartData {
@@ -99,7 +101,7 @@ export class IncomeChartController {
         values.set(
           valueSource,
           (values.get(valueSource) ?? 0) +
-            toDecimal(this.converter.toDisplayCurrency(entry.amount)),
+            toDecimal(this.converter.toCurrency(entry.amount, this.displayCurrency)),
         );
       }
     }

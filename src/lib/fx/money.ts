@@ -2,10 +2,6 @@ import { Money } from 'ts-money';
 import { Currency } from './currency.ts';
 import type { CurrencyConverter } from './currency_converter.ts';
 
-export const DISPLAY_CURRENCY = Currency.EUR;
-
-const ZERO_DISPLAY = new Money(0, DISPLAY_CURRENCY);
-
 export function toDecimal(money: Money): number {
   return money.amount / 100;
 }
@@ -17,9 +13,11 @@ export function fromDecimal(amount: number, currency: Currency): Money {
 export function sumInDisplayCurrency(
   moneys: readonly Money[],
   converter: CurrencyConverter,
+  displayCurrency: Currency,
 ): Money {
   return moneys.reduce(
-    (sum, m) => new Money(sum.amount + converter.toDisplayCurrency(m).amount, DISPLAY_CURRENCY),
-    ZERO_DISPLAY,
+    (sum, m) =>
+      new Money(sum.amount + converter.toCurrency(m, displayCurrency).amount, displayCurrency),
+    new Money(0, displayCurrency),
   );
 }

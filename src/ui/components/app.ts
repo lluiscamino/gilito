@@ -5,12 +5,14 @@ import { DashboardController } from '../controllers/dashboard_controller.ts';
 import { IncomeInputController } from '../controllers/income_input_controller.ts';
 import { SnapshotInputController } from '../controllers/snapshot_input_controller.ts';
 import { SpreadsheetController } from '../controllers/spreadsheet_controller.ts';
+import { loadSettings, saveSettings } from '../settings.ts';
 import { BottomNav } from './bottom_nav.ts';
 import { Header } from './header.ts';
 import { DataTable } from './data_table.ts';
 import { IncomeInputForm } from './income_input_form.ts';
 import { IncomePage } from './income_page.ts';
 import { MainDashboard } from './main_dashboard.ts';
+import { SettingsPage } from './settings_page.ts';
 import { SnapshotInputForm } from './snapshot_input_form.ts';
 
 export class App {
@@ -27,7 +29,6 @@ export class App {
     const converter = this.converter;
     const router = new Navigo(import.meta.env.BASE_URL);
 
-    const header = new Header().render();
     const content = document.createElement('div');
     content.className = 'app-content';
     const nav = new BottomNav(
@@ -37,6 +38,7 @@ export class App {
     );
     const navEl = nav.render();
 
+    const header = new Header(() => router.navigate('/settings')).render();
     root.append(header, content, navEl);
 
     router
@@ -48,7 +50,7 @@ export class App {
         }
         content.append(
           new MainDashboard(
-            new DashboardController(repo, converter),
+            new DashboardController(repo, converter, loadSettings().displayCurrency),
             () => router.navigate('/input'),
             () => router.navigate('/income/input'),
           ).render(),
@@ -57,7 +59,7 @@ export class App {
       })
       .on('/snapshots', () => {
         content.innerHTML = '';
-        const ctrl = new SpreadsheetController(repo, converter);
+        const ctrl = new SpreadsheetController(repo, converter, loadSettings().displayCurrency);
         content.append(
           new DataTable(ctrl.getColumns(), ctrl.getRows(), (id, i, amount) =>
             ctrl.updateCell(id, i, amount),
@@ -77,7 +79,7 @@ export class App {
       })
       .on('/income', () => {
         content.innerHTML = '';
-        content.append(new IncomePage(repo, converter).render());
+        content.append(new IncomePage(repo, converter, loadSettings().displayCurrency).render());
         nav.setActive('income');
       })
       .on('/income/input', () => {
@@ -87,6 +89,19 @@ export class App {
             new IncomeInputController(repo),
             () => router.navigate('/income'),
             () => router.navigate('/income'),
+          ).render(),
+        );
+      })
+      .on('/settings', () => {
+        content.innerHTML = '';
+        content.append(
+          new SettingsPage(
+            loadSettings(),
+            (newSettings) => {
+              saveSettings(newSettings);
+              router.navigate('/');
+            },
+            () => router.navigate('/'),
           ).render(),
         );
       })
