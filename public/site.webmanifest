@@ -1,7 +1,8 @@
 {
   "name": "Gilito",
   "short_name": "Gilito",
-  "start_url": "/",
+  "start_url": ".",
+  "scope": ".",
   "icons": [
     {
       "src": "./web-app-manifest-192x192.png",
