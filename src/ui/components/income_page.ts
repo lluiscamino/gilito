@@ -22,7 +22,11 @@ export class IncomePage {
     const chartSection = document.createElement('div');
     chartSection.className = 'income-chart-section';
     chartSection.append(
-      new IncomeChart(this.repo.getAllIncomeSheets(), this.converter, this.displayCurrency).render(),
+      new IncomeChart(
+        this.repo.getAllIncomeSheets(),
+        this.converter,
+        this.displayCurrency,
+      ).render(),
     );
 
     const ctrl = new IncomeSpreadsheetController(this.repo, this.converter, this.displayCurrency);
