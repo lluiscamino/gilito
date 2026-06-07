@@ -1,5 +1,6 @@
 import type { Money } from 'ts-money';
 import { toDecimal, fromDecimal } from '../lib/fx/money.ts';
+import type { Currency } from '../lib/fx/currency.ts';
 
 export { toDecimal, fromDecimal };
 
@@ -16,6 +17,16 @@ export function formatMoneyCompact(money: Money): string {
     notation: 'compact',
     maximumFractionDigits: 1,
   }).format(toDecimal(money));
+}
+
+const CURRENCY_STYLES: Record<Currency, { emoji: string; color: string }> = {
+  EUR: { emoji: '🇪🇺', color: '#2C7BE5' },
+  USD: { emoji: '🇺🇸', color: '#34C759' },
+  GBP: { emoji: '🇬🇧', color: '#AF52DE' },
+};
+
+export function getCurrencyStyle(currency: Currency): { emoji: string; color: string } {
+  return CURRENCY_STYLES[currency];
 }
 
 export function getCurrencySymbol(currency: string): string {

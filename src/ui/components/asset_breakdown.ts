@@ -1,6 +1,7 @@
 import type { Allocations, AllocationEntry } from '../controllers/allocations.ts';
 import { AllocationLevel } from '../controllers/allocations.ts';
-import { formatMoney } from '../formatting.ts';
+import { BreakdownBar } from './breakdown_bar.ts';
+import { BreakdownList } from './breakdown_list.ts';
 
 const LEVELS = [
   AllocationLevel.Overview,
@@ -118,8 +119,8 @@ class BreakdownBody {
 
   constructor(entries: readonly AllocationEntry[]) {
     this.wrapper = document.createElement('div');
-    this.bar = renderBar(entries);
-    this.list = renderList(entries);
+    this.bar = new BreakdownBar(entries).render();
+    this.list = new BreakdownList(entries).render();
     this.wrapper.append(this.bar, this.list);
   }
 
@@ -128,44 +129,11 @@ class BreakdownBody {
   }
 
   update(entries: readonly AllocationEntry[]): void {
-    const nextBar = renderBar(entries);
-    const nextList = renderList(entries);
+    const nextBar = new BreakdownBar(entries).render();
+    const nextList = new BreakdownList(entries).render();
     this.bar.replaceWith(nextBar);
     this.list.replaceWith(nextList);
     this.bar = nextBar;
     this.list = nextList;
   }
-}
-
-function renderBar(entries: readonly AllocationEntry[]): HTMLElement {
-  const bar = document.createElement('div');
-  bar.className = 'stacked-bar';
-  bar.setAttribute('aria-hidden', 'true');
-  bar.innerHTML = entries
-    .map(
-      (a) =>
-        `<div class="stacked-bar__segment" style="width:${a.percentage}%;background:${a.color}" title="${a.label}"></div>`,
-    )
-    .join('');
-  return bar;
-}
-
-function renderList(entries: readonly AllocationEntry[]): HTMLElement {
-  const list = document.createElement('ul');
-  list.className = 'breakdown__list';
-  list.innerHTML = entries
-    .map(
-      (a) => `
-      <li class="breakdown__item">
-        <span class="breakdown__emoji" aria-hidden="true">${a.emoji}</span>
-        <span class="breakdown__name">${a.label}</span>
-        <div class="breakdown__track" role="progressbar" aria-valuenow="${Math.round(a.percentage)}" aria-valuemin="0" aria-valuemax="100">
-          <div class="breakdown__fill" style="width:${a.percentage}%;background:${a.color}"></div>
-        </div>
-        <span class="breakdown__pct" style="color:${a.color}">${Math.round(a.percentage)}%</span>
-        <span class="breakdown__amount">${formatMoney(a.amount)}</span>
-      </li>`,
-    )
-    .join('');
-  return list;
 }

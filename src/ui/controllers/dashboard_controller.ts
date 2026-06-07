@@ -3,11 +3,13 @@ import {
   AssetCategoryLevel,
   getSnapshotsPerCategoryLevel,
 } from '../../lib/assets/asset_category.ts';
+import type { AssetSnapshot } from '../../lib/assets/asset_snapshot.ts';
 import type { BalanceSheet } from '../../lib/assets/balance_sheet.ts';
 import type { Currency } from '../../lib/fx/currency.ts';
 import type { CurrencyConverter } from '../../lib/fx/currency_converter.ts';
 import { sumInDisplayCurrency } from '../../lib/fx/money.ts';
 import type { WealthRepository } from '../../lib/data/wealth_repository.ts';
+import { getCurrencyStyle } from '../formatting.ts';
 import { AllocationLevel } from './allocations.ts';
 import type { Allocations, AllocationEntry } from './allocations.ts';
 import type { WealthSnapshot } from './wealth_snapshot.ts';
@@ -90,6 +92,38 @@ export class DashboardController {
       [AllocationLevel.Detail.id]: toEntries(AssetCategoryLevel.Detail),
       [AllocationLevel.Assets.id]: assetEntries,
     };
+  }
+
+  /** Returns `null` when assets are held in a single currency, as a breakdown would be redundant. */
+  getCurrencyAllocations(): readonly AllocationEntry[] | null {
+    const total = this.sheetTotal(this.latest);
+
+    const groups = new Map<Currency, AssetSnapshot[]>();
+    for (const snapshot of this.latest.snapshots) {
+      const group = groups.get(snapshot.asset.currency);
+      if (group) group.push(snapshot);
+      else groups.set(snapshot.asset.currency, [snapshot]);
+    }
+
+    if (groups.size < 2) return null;
+
+    return [...groups.entries()]
+      .map(([currency, snapshots]) => {
+        const amount = sumInDisplayCurrency(
+          snapshots.map((s) => s.value),
+          this.converter,
+          this.displayCurrency,
+        );
+        const style = getCurrencyStyle(currency);
+        return {
+          label: currency,
+          emoji: style.emoji,
+          color: style.color,
+          amount,
+          percentage: total.amount > 0 ? (amount.amount / total.amount) * 100 : 0,
+        };
+      })
+      .sort((a, b) => b.amount.amount - a.amount.amount);
   }
 
   getWealthHistory(): WealthSnapshot[] {

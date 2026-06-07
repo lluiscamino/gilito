@@ -2,6 +2,7 @@ import type { DashboardController } from '../controllers/dashboard_controller.ts
 import { NetWorthHero } from './net_worth_hero.ts';
 import { WealthChart } from './wealth_chart.ts';
 import { AssetBreakdown } from './asset_breakdown.ts';
+import { CurrencyBreakdown } from './currency_breakdown.ts';
 
 export class MainDashboard {
   private readonly controller: DashboardController;
@@ -45,6 +46,12 @@ export class MainDashboard {
       new WealthChart(this.controller.getWealthHistory()).render(),
       new AssetBreakdown(this.controller.getAllocations()).render(),
     );
+
+    const currencyAllocations = this.controller.getCurrencyAllocations();
+    if (currencyAllocations) {
+      main.append(new CurrencyBreakdown(currencyAllocations).render());
+    }
+
     return main;
   }
 }
