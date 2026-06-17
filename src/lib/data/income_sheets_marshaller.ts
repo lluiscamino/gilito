@@ -19,7 +19,7 @@ export class IncomeSheetsMarshaller {
         .map((id, i) => {
           const source = sources.find((s) => s.id === id);
           const amount = fromDecimal(values[i] ?? 0, source?.currency ?? 'EUR');
-          if (!source || amount.amount === 0) return null;
+          if (!source) return null;
           return { source, amount };
         })
         .filter((e): e is NonNullable<typeof e> => e !== null);
