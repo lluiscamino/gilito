@@ -15,7 +15,7 @@ export class BalanceSheetsMarshaller {
         .map((id, i) => {
           const asset = assets.find((a) => a.id === id);
           const value = fromDecimal(values[i] ?? 0, asset?.currency ?? 'EUR');
-          if (!asset || value.amount === 0) return null;
+          if (!asset) return null;
           return { asset, value };
         })
         .filter((s): s is NonNullable<typeof s> => s !== null);
